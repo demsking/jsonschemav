@@ -1,0 +1,47 @@
+{
+  "name": "jsonschemav",
+  "version": "0.1.0",
+  "description": "A simple JSON Schema Validation",
+  "main": "lib/compiler.js",
+  "scripts": {
+    "dev": "DEBUG=newsletter-server* nodemon --harmony --trace-warnings index.js",
+    "pretest": "standard",
+    "test": "mocha --harmony --trace-warnings test/specs/*.spec.js",
+    "posttest": "npm run doc",
+    "doc": "documentation readme lib/compiler.js --shallow --section='Instance API'",
+    "lint": "standard",
+    "lintd": "nodemon -x 'npm run lint'",
+    "testd": "nodemon -x 'mocha --harmony --trace-warnings test/specs test/specs/**/*.spec.js'",
+    "tag": "git tag `node -p 'require(\"./package\").version'`",
+    "coveraged": "nodemon -x 'npm run coverage'",
+    "testdb": "mocha --debug-brk --harmony --trace-warnings test/specs/*.spec.js",
+    "debug": "DEBUG=newsletter-server* node-debug index.js",
+    "coverage": "istanbul cover _mocha test/specs test/specs/**/*.spec.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/demsking/jsonschemav.git"
+  },
+  "keywords": [
+    "json",
+    "schema",
+    "validator",
+    "validation"
+  ],
+  "author": "Sébastien Demanou",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/demsking/jsonschemav/issues"
+  },
+  "homepage": "https://github.com/demsking/jsonschemav#readme",
+  "devDependencies": {
+    "documentation": "^4.0.0-rc.1",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.3.0",
+    "nodemon": "^1.11.0",
+    "standard": "^10.0.2"
+  },
+  "dependencies": {
+    "clone": "^2.1.1"
+  }
+}
