@@ -13,7 +13,7 @@ npm install --save jsonschemav
 ## Usage
 
 ```javascript
-const jsonschemav = require('../lib/compiler')
+const jsonschemav = require('jsonschemav')
 const instance = jsonschemav.instance()
 
 const schema = { type: 'string', minLength: 6 }
