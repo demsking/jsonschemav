@@ -338,26 +338,29 @@ describe('generic.string.keywords.pattern', () => {
   const instance = compiler.instance()
   const schema = {
     type: 'string',
-    pattern: /y/,
-    default: 'xyz'
+    pattern: '^(\\([0-9]{3}\\))?[0-9]{3}-[0-9]{4}$'
   }
 
   it('should successfully validate', () => {
-    assert.doesNotThrow(() => instance.validateSchema(schema))
-  })
+    schema.default = '555-1212'
+    assert.doesNotThrow(() =>
+      instance.validateSchema(schema), `should successfully validate ${schema.default}`)
 
-  it('should successfully validate with unmatching default value', () => {
-    schema.default = 'abc'
+    schema.default = '(888)555-1212'
+    assert.doesNotThrow(() =>
+      instance.validateSchema(schema), `should successfully validate ${schema.default}`)
 
-    assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value/)
-  })
+    schema.default = '(888)555-1212 ext. 532'
+    assert.throws(() => instance.validateSchema(schema),
+      /Invalid default value/, `should successfully validate ${schema.default}`)
 
-  it('should successfully validate with a null default value', () => {
+    schema.default = '(800)FLOWERS'
+    assert.throws(() => instance.validateSchema(schema),
+      /Invalid default value/, `should successfully validate ${schema.default}`)
+
     schema.default = null
-
-    assert.throws(() =>
-      compiler.instance().validateSchema(schema), /Invalid default value null/)
+    assert.throws(() => instance.validateSchema(schema),
+      /Invalid default value/, `should successfully validate ${schema.default}`)
   })
 })
 
