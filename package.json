@@ -5,6 +5,7 @@
   "main": "lib/compiler.js",
   "scripts": {
     "dev": "DEBUG=newsletter-server* nodemon --harmony --trace-warnings index.js",
+    "prepublish": "standard",
     "pretest": "standard",
     "test": "mocha --harmony --trace-warnings test/specs test/specs/**/*.spec.js",
     "posttest": "npm run doc",
