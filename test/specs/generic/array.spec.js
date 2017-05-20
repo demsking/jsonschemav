@@ -66,13 +66,13 @@ describe('generic.array.validateSchema', () => {
     }
 
     assert.doesNotThrow(() =>
-      instance.validateSchema(schema), 'should validate an interger value')
+      instance.validateSchema(schema), 'should validate an integer value')
 
     assert.doesNotThrow(() => {
       schema.maxItems = 0
 
       instance.validateSchema(schema)
-    }, 'should validate an 0 interger value')
+    }, 'should validate an 0 integer value')
 
     assert.throws(() => {
       schema.maxItems = -1
@@ -100,13 +100,13 @@ describe('generic.array.validateSchema', () => {
     }
 
     assert.doesNotThrow(() =>
-      instance.validateSchema(schema), 'should validate an interger value')
+      instance.validateSchema(schema), 'should validate an integer value')
 
     assert.doesNotThrow(() => {
       schema.minItems = 0
 
       instance.validateSchema(schema)
-    }, 'should validate an 0 interger value')
+    }, 'should validate an 0 integer value')
 
     assert.throws(() => {
       schema.minItems = -1
