@@ -80,10 +80,10 @@ instance.clone('string', 'twitter', {
     // - a Promise for async validation
     return axios.get(`${endpoint}?username=${data}`)
       .then((response) => {
-        if (!response.data.valid) {
+        if (response.data.valid) {
           return {
-            keyword: 'taken',
-            message: response.data.msg
+            keyword: 'notfound',
+            message: 'The username does not exists'
           }
         }
         return true
