@@ -61,6 +61,7 @@ Clone a type
 **Examples**
 
 ```javascript
+// Async validation
 const axios = require('axios')
 const endpoint = 'https://twitter.com/users/username_available'
 
