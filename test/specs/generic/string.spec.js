@@ -43,6 +43,105 @@ describe('generic.string.validateSchema', () => {
     assert.throws(() =>
       instance.validateSchema(schema), /Invalid default value/)
   })
+
+  it('should successfully validate schema with maxLength', () => {
+    const schema = {
+      type: 'string',
+      maxLength: 12
+    }
+
+    assert.doesNotThrow(() =>
+      instance.validateSchema(schema), 'should validate an integer value')
+
+    assert.doesNotThrow(() => {
+      schema.maxLength = 0
+
+      instance.validateSchema(schema)
+    }, 'should validate an 0 interger value')
+
+    assert.throws(() => {
+      schema.maxLength = -1
+
+      instance.validateSchema(schema)
+    }, /maxLength must be greater than, or equal to, 0/, 'should validate with a negative integer value `-1`')
+
+    assert.throws(() => {
+      schema.maxLength = 'abc'
+
+      instance.validateSchema(schema)
+    }, /maxLength must be an integer/, 'should validate with a string value `abc`')
+
+    assert.throws(() => {
+      schema.maxLength = '123'
+
+      instance.validateSchema(schema)
+    }, /maxLength must be an integer/, 'should validate with a string value value `123`')
+  })
+
+  it('should successfully validate schema with minLength', () => {
+    const schema = {
+      type: 'string',
+      minLength: 12
+    }
+
+    assert.doesNotThrow(() =>
+      instance.validateSchema(schema), 'should validate an interger value')
+
+    assert.doesNotThrow(() => {
+      schema.minLength = 0
+
+      instance.validateSchema(schema)
+    }, 'should validate an 0 interger value')
+
+    assert.throws(() => {
+      schema.minLength = -1
+
+      instance.validateSchema(schema)
+    }, /minLength must be greater than, or equal to, 0/, 'should validate with a negative integer value `-1`')
+
+    assert.throws(() => {
+      schema.minLength = 'abc'
+
+      instance.validateSchema(schema)
+    }, /minLength must be an integer/, 'should validate with a string value `abc`')
+
+    assert.throws(() => {
+      schema.minLength = '123'
+
+      instance.validateSchema(schema)
+    }, /minLength must be an integer/, 'should validate with a string value value `123`')
+  })
+
+  it('should successfully validate schema with pattern', () => {
+    const schema = {
+      type: 'string'
+    }
+
+    assert.throws(() => {
+      schema.pattern = null
+      instance.validateSchema(schema)
+    }, /pattern must be a string/, 'should validate with a null pattern value')
+
+    assert.throws(() => {
+      schema.pattern = undefined
+      instance.validateSchema(schema)
+    }, /pattern must be a string/, 'should validate with an undefined pattern value')
+
+    assert.throws(() => {
+      schema.pattern = []
+      instance.validateSchema(schema)
+    }, /pattern must be a string/, 'should validate with a non object value')
+
+    assert.doesNotThrow(() => {
+      schema.pattern = '^abc$'
+      instance.validateSchema(schema)
+    }, 'should validate with a valide pattern value')
+
+    assert.throws(() => {
+      schema.pattern = 'invalid reg exp ('
+      instance.validateSchema(schema)
+    }, /Invalid regular expression/, 'should validate with an invalid regular expression key')
+  })
 })
 
 describe('generic.string.validate', () => {
@@ -54,10 +153,16 @@ describe('generic.string.validate', () => {
     const report1 = validator.validate(null)
     const report2 = validator.validate('xyz')
     const report3 = validator.validate(undefined)
+    const report4 = validator.validate('Déjà vu')
+    const report5 = validator.validate('')
+    const report6 = validator.validate('42')
 
     assert.equal(report1, true, 'should have no error with `null`')
     assert.equal(report2, true, 'should have no error with `xyz`')
     assert.equal(report3, true, 'should have no error with `undefined` using default value')
+    assert.equal(report4, true, 'should have no error with unicode `Déjà vu`')
+    assert.equal(report5, true, 'should have no error with an empty string')
+    assert.equal(report6, true, 'should have no error with `42`')
   })
 
   it('should successfully validate a non string', () => {
