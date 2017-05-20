@@ -96,8 +96,8 @@ const validator = instance.compile(schema)
 
 validator.validate('demsking').then((result) => {
   console.log(result)
-  // { keyword: 'taken',
-  //   message: 'This username is already taken' }
+  // { keyword: 'notfound',
+  //   message: 'The username does not exists' }
 })
 
 validator.validate('nonexistingac').then((result) => {
