@@ -96,13 +96,13 @@ const schema = { type: 'twitter' }
 const validator = instance.compile(schema)
 
 validator.validate('demsking').then((result) => {
-  console.log(result)
-  // { keyword: 'notfound',
-  //   message: 'The username does not exists' }
+  console.log(result) // true
 })
 
 validator.validate('nonexistingac').then((result) => {
-  console.log(result) // true
+  console.log(result)
+  // { keyword: 'notfound',
+  //   message: 'The username does not exists' }
 })
 ```
 
