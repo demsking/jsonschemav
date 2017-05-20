@@ -5,7 +5,7 @@ const compiler = require('../../lib/compiler')
 
 /* global describe it */
 
-describe('api.validateSchema', () => {
+describe('instance.validateSchema', () => {
   const instance = compiler.instance()
 
   it('should successfully validate non object schema', () => {
@@ -32,7 +32,7 @@ describe('api.validateSchema', () => {
   })
 })
 
-describe('api.addAlias', () => {
+describe('instance.addAlias', () => {
   const instance = compiler.instance()
 
   it('should successfully execute with an invalid alias name', () => {
@@ -54,7 +54,35 @@ describe('api.addAlias', () => {
   })
 })
 
-describe('api.addType', () => {
+describe('instance.clone', () => {
+  const instance = compiler.instance()
+  const prototype = {
+    validateSchema () {},
+    validate: () => true
+  }
+
+  it('should successfully add clone a type', () => {
+    assert.throws(() =>
+      instance.clone('twitter', 123), /name must be a string/)
+
+    assert.throws(() =>
+      instance.clone('twitter', 'googleplus'), /Unknow type 'twitter'/)
+
+    assert.throws(() =>
+      instance.clone('string', 'twitter'), /prototype must be an object/)
+
+    assert.doesNotThrow(() =>
+      instance.clone('string', 'twitter', {}))
+
+    assert.doesNotThrow(() =>
+      instance.clone('string', 'twitter', prototype))
+
+    assert.doesNotThrow(() =>
+      instance.validateSchema({ type: 'twitter' }))
+  })
+})
+
+describe('instance.addType', () => {
   const instance = compiler.instance()
 
   it('should successfully add new type', () => {
@@ -68,7 +96,7 @@ describe('api.addType', () => {
   })
 })
 
-describe('api.removeType', () => {
+describe('instance.removeType', () => {
   const instance = compiler.instance()
 
   it('should successfully remove a type', () => {
@@ -83,7 +111,7 @@ describe('api.removeType', () => {
   })
 })
 
-describe('api.addKeyword', () => {
+describe('instance.addKeyword', () => {
   const instance = compiler.instance()
   const validator = (value, data) => value === data
 
@@ -127,7 +155,7 @@ describe('api.addKeyword', () => {
   })
 })
 
-describe('api.removeKeyword', () => {
+describe('instance.removeKeyword', () => {
   const instance = compiler.instance()
 
   instance.addKeyword('string', 'equalsTo', (value, data) => data === value)
@@ -150,7 +178,7 @@ describe('api.removeKeyword', () => {
   })
 })
 
-describe('api.compile', () => {
+describe('instance.compile', () => {
   const instance = compiler.instance()
 
   instance.addKeyword('string', 'equalsTo', (value, data) => data === value)
