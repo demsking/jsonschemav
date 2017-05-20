@@ -48,6 +48,63 @@ Add an alias for a type
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of a defined type
 -   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The alias name
 
+### clone
+
+Clone a type
+
+**Parameters**
+
+-   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of a defined type
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The new type name
+-   `prototype` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The overwrite prototype object
+
+**Examples**
+
+```javascript
+const axios = require('axios')
+const endpoint = 'https://twitter.com/users/username_available'
+
+instance.clone('string', 'twitter', {
+  validateSchema (schema, generic) {
+    // schema is the user schema to validate
+    // generic is the set of current instance defined types
+    // use this function to validate the user schema
+    // the method must trown any invalid errors
+    // no return is require
+  },
+  validate (data) {
+    // use this function to validate the user data
+    // the function must return
+    // - a true boolean value on success
+    // - a false boolean value on invalid type
+    // - a Promise for async validation
+    return axios.get(`${endpoint}?username=${data}`)
+      .then((response) => {
+        if (!response.data.valid) {
+          return {
+            keyword: 'taken',
+            message: response.data.msg
+          }
+        }
+        return true
+      })
+  }
+})
+
+const schema = { type: 'twitter' }
+const validator = instance.compile(schema)
+
+validator.validate('demsking').then((result) => {
+  console.log(result)
+  // { keyword: 'taken',
+  //   message: 'This username is already taken' }
+})
+
+validator.validate('nonexistingac').then((result) => {
+  console.log(result) // true
+})
+```
+
 ### addType
 
 Add a new type to the instance
