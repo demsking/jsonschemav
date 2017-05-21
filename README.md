@@ -2,7 +2,7 @@
 
 A simple JSON Schema Validation
 
-[![Build Status](https://travis-ci.org/demsking/jsonschemav.svg?branch=master)](https://travis-ci.org/demsking/jsonschemav) [![bitHound Overall Score](https://www.bithound.io/github/demsking/jsonschemav/badges/score.svg)](https://www.bithound.io/github/demsking/jsonschemav) [![bitHound Dependencies](https://www.bithound.io/github/demsking/jsonschemav/badges/dependencies.svg)](https://www.bithound.io/github/demsking/jsonschemav/master/dependencies/npm)
+[![Build Status](https://travis-ci.org/demsking/jsonschemav.svg?branch=master)](https://travis-ci.org/demsking/jsonschemav) [![bitHound Overall Score](https://www.bithound.io/github/demsking/jsonschemav/badges/score.svg)](https://www.bithound.io/github/demsking/jsonschemav) [![bitHound Dependencies](https://www.bithound.io/github/demsking/jsonschemav/badges/dependencies.svg)](https://www.bithound.io/github/demsking/jsonschemav/master/dependencies/npm) [![Coverage Status](https://coveralls.io/repos/github/demsking/jsonschemav/badge.svg?branch=master)](https://coveralls.io/github/demsking/jsonschemav?branch=master)
 
 ## Install
 
