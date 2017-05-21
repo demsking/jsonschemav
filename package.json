@@ -18,7 +18,7 @@
     "testdb": "mocha --debug-brk --harmony --trace-warnings test/specs test/specs/**/*.spec.js",
     "debug": "DEBUG=newsletter-server* node-debug index.js",
     "coverage": "istanbul cover _mocha test/specs test/specs/**/*.spec.js",
-    "coveralls": "istanbul cover _mocha --report lcovonly -- -R spec test/specs test/specs/**/*.spec.js && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js --verbose"
+    "coveralls": "standard && istanbul cover _mocha --report lcovonly -- -R spec test/specs test/specs/**/*.spec.js && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js --verbose"
   },
   "repository": {
     "type": "git",
