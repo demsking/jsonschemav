@@ -38,3 +38,6 @@ jspm_packages
 
 # Dolphin file
 .directory
+
+# Kate swap file
+*.kate-swp
