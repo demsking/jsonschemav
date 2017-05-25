@@ -2,7 +2,7 @@
 
 A simple JSON Schema Validation
 
-[![Build Status](https://travis-ci.org/demsking/jsonschemav.svg?branch=master)](https://travis-ci.org/demsking/jsonschemav) [![bitHound Overall Score](https://www.bithound.io/github/demsking/jsonschemav/badges/score.svg)](https://www.bithound.io/github/demsking/jsonschemav) [![bitHound Dependencies](https://www.bithound.io/github/demsking/jsonschemav/badges/dependencies.svg)](https://www.bithound.io/github/demsking/jsonschemav/master/dependencies/npm) [![Coverage Status](https://coveralls.io/repos/github/demsking/jsonschemav/badge.svg?branch=master)](https://coveralls.io/github/demsking/jsonschemav?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/demsking/jsonschemav/badge.svg)](https://snyk.io/test/github/demsking/jsonschemav)
+[![Build Status](https://travis-ci.org/demsking/jsonschemav.svg?branch=master)](https://travis-ci.org/demsking/jsonschemav) [![Known Vulnerabilities](https://snyk.io/test/github/demsking/jsonschemav/badge.svg)](https://snyk.io/test/github/demsking/jsonschemav) [![Coverage Status](https://coveralls.io/repos/github/demsking/jsonschemav/badge.svg?branch=master)](https://coveralls.io/github/demsking/jsonschemav?branch=master)
 
 ## Install
 
@@ -97,65 +97,6 @@ const validator = instance.compile(schema)
 const result = validator.validate(123) // true
 ```
 
-### clone
-
-Clone a type
-
-**Parameters**
-
--   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of a defined type
--   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The new type name
--   `prototype` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** The overwrite prototype object
-
-**Examples**
-
-```javascript
-// Async validation
-
-const axios = require('axios')
-const endpoint = 'https://twitter.com/users/username_available'
-
-instance.clone('string', 'twitter', {
-  validateSchema (schema, generic) {
-    // schema is the user schema to validate
-    // generic is the set of current instance defined types
-    // use this function to validate the user schema
-    // the method must trown any invalid errors
-    // no return is require
-  },
-  validate (data) {
-    // use this function to validate the user data
-    // the function must return
-    // - a true boolean value on success
-    // - a false boolean value on invalid type
-    // - a Promise for async validation
-    return axios.get(`${endpoint}?username=${data}`)
-      .then((response) => {
-        if (response.data.valid) {
-          return {
-            keyword: 'notfound',
-            message: 'The username does not exists'
-          }
-        }
-        return true
-      })
-  }
-})
-
-const schema = { type: 'twitter' }
-const validator = instance.compile(schema)
-
-validator.validate('demsking').then((result) => {
-  console.log(result) // true
-})
-
-validator.validate('nonexistingac').then((result) => {
-  console.log(result)
-  // { keyword: 'notfound',
-  //   message: 'The username does not exists' }
-})
-```
-
 ### addType
 
 Add a new type to the instance
@@ -193,7 +134,7 @@ instance.removeType('string')
 
 const schema = { type: 'string' }
 const validator = instance.compile(schema)
-// throw Error: Unknow type 'string'
+// throw Error: Unknown type 'string'
 ```
 
 ### addKeyword

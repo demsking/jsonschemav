@@ -1,12 +1,12 @@
 'use strict'
 
 const assert = require('assert')
-const compiler = require('../../lib/compiler')
+const api = require('../../lib/api')
 
 /* global describe it */
 
 describe('instance.validateSchema', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully validate non object schema', () => {
     const schema = 'non object schema'
@@ -33,7 +33,7 @@ describe('instance.validateSchema', () => {
 })
 
 describe('instance.addAlias', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully execute with an invalid alias name', () => {
     assert.throws(() =>
@@ -42,7 +42,7 @@ describe('instance.addAlias', () => {
 
   it('should successfully execute with an unknow type', () => {
     assert.throws(() =>
-      instance.addAlias('xyz', 'integer'), /Unknow type 'xyz'/)
+      instance.addAlias('xyz', 'integer'), /Unknown type 'xyz'/)
   })
 
   it('should successfully create an alias', () => {
@@ -54,40 +54,12 @@ describe('instance.addAlias', () => {
   })
 })
 
-describe('instance.clone', () => {
-  const instance = compiler.instance()
-  const prototype = {
-    validateSchema () {},
-    validate: () => true
-  }
-
-  it('should successfully add clone a type', () => {
-    assert.throws(() =>
-      instance.clone('twitter', 123), /name must be a string/)
-
-    assert.throws(() =>
-      instance.clone('twitter', 'googleplus'), /Unknow type 'twitter'/)
-
-    assert.throws(() =>
-      instance.clone('string', 'twitter'), /prototype must be an object/)
-
-    assert.doesNotThrow(() =>
-      instance.clone('string', 'twitter', {}))
-
-    assert.doesNotThrow(() =>
-      instance.clone('string', 'twitter', prototype))
-
-    assert.doesNotThrow(() =>
-      instance.validateSchema({ type: 'twitter' }))
-  })
-})
-
 describe('instance.addType', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully add new type', () => {
     assert.doesNotThrow(() =>
-      instance.addType('twitter'))
+      instance.addType('twitter', () => true))
   })
 
   it('should successfully execute with a non prototype object', () => {
@@ -97,7 +69,7 @@ describe('instance.addType', () => {
 })
 
 describe('instance.removeType', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully remove a type', () => {
     instance.removeType('string')
@@ -107,24 +79,27 @@ describe('instance.removeType', () => {
     }
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Unknow type 'string'/)
+      instance.validateSchema(schema), /Unknown type 'string'/)
   })
 })
 
 describe('instance.addKeyword', () => {
-  const instance = compiler.instance()
-  const validator = (value, data) => value === data
+  const instance = api.instance()
 
-  instance.addType('twitter')
+  instance.addType('twitter', (data) => {
+    return data.value.split(/\s/).length === 1
+  })
 
   it('should successfully add new keyword', () => {
+    const validator = (value, data) => value === data
+
     assert.doesNotThrow(() =>
       instance.addKeyword('twitter', 'account', validator))
   })
 
   it('should successfully execute with a valid type name', () => {
     assert.throws(() =>
-      instance.addKeyword('xyz', null), /Unknow type 'xyz'/)
+      instance.addKeyword('xyz', null), /Unknown type 'xyz'/)
   })
 
   it('should successfully execute with a non validator function', () => {
@@ -143,7 +118,7 @@ describe('instance.addKeyword', () => {
     assert.doesNotThrow(() => instance.validateSchema(schema))
   })
 
-  it('should successfully execute with a null prototype', () => {
+  it('should successfully execute with an invalid default data', () => {
     const schema = {
       type: 'twitter',
       account: 'sebastien',
@@ -151,12 +126,12 @@ describe('instance.addKeyword', () => {
     }
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value "invalid value"/)
+      instance.compile(schema), /Invalid default value "invalid value"/)
   })
 })
 
 describe('instance.removeKeyword', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   instance.addKeyword('string', 'equalsTo', (value, data) => data === value)
 
@@ -174,12 +149,12 @@ describe('instance.removeKeyword', () => {
 
   it('should successfully execute with a non existing type', () => {
     assert.throws(() =>
-      instance.removeKeyword('unknow', 'x'), /Unknow type 'unknow'/)
+      instance.removeKeyword('unknow', 'x'), /Unknown type 'unknow'/)
   })
 })
 
 describe('instance.compile', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   instance.addKeyword('string', 'equalsTo', (value, data) => data === value)
 
@@ -197,6 +172,6 @@ describe('instance.compile', () => {
 
   it('should successfully execute with a non existing type', () => {
     assert.throws(() =>
-      instance.removeKeyword('unknow', 'x'), /Unknow type 'unknow'/)
+      instance.removeKeyword('unknow', 'x'), /Unknown type 'unknow'/)
   })
 })

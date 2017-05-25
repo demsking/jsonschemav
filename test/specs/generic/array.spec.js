@@ -1,12 +1,12 @@
 'use strict'
 
 const assert = require('assert')
-const compiler = require('../../../lib/compiler')
+const api = require('../../../lib/api')
 
 /* global describe it */
 
 describe('generic.array.validateSchema', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully validate schema with additionalItems', () => {
     const schema = {
@@ -176,31 +176,35 @@ describe('generic.array.validateSchema', () => {
 })
 
 describe('generic.array.compile', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = {
     type: 'array'
   }
 
   it('should successfully compile schema with missing uniqueItems', () => {
-    const _schema = instance.validateSchema(schema)
+    const validator = instance.compile(schema)
 
-    assert.ok(_schema.hasOwnProperty('uniqueItems'), 'should have the uniqueItems keyword')
-    assert.equal(_schema.uniqueItems, false, 'should have the uniqueItems keyword with boolean value false')
+    assert.ok(validator.schema.hasOwnProperty('uniqueItems'),
+      'should have the uniqueItems keyword')
+    assert.equal(validator.schema.uniqueItems, false,
+      'should have the uniqueItems keyword with boolean value false')
   })
 
   it('should successfully compile schema with default value', () => {
     schema.items = { type: 'string' }
     schema.default = [ 'a' ]
 
-    const _schema = instance.validateSchema(schema)
+    const validator = instance.compile(schema)
 
-    assert.ok(_schema.hasOwnProperty('uniqueItems'), 'should have the uniqueItems keyword')
-    assert.equal(_schema.uniqueItems, false, 'should have the uniqueItems keyword with boolean value false')
+    assert.ok(validator.schema.hasOwnProperty('uniqueItems'),
+      'should have the uniqueItems keyword')
+    assert.equal(validator.schema.uniqueItems, false,
+      'should have the uniqueItems keyword with boolean value false')
   })
 })
 
 describe('generic.array.validate', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully validate with no items entry', () => {
     const schema = {
@@ -301,13 +305,20 @@ describe('generic.array.validate', () => {
     const report4 = validator.validate(data4)
     const report5 = validator.validate(data5)
 
-    assert.equal(report1, true, `should have no error with ${JSON.stringify(data1)}`)
-    assert.equal(Array.isArray(report2), true, `should have an error with ${JSON.stringify(data2)}`)
-    assert.equal(report2[0].errors[0].errors[0].keyword, 'enum', `should have an enum error with ${JSON.stringify(data2)}`)
-    assert.equal(Array.isArray(report3), true, `should have an error with ${JSON.stringify(data3)}`)
-    assert.equal(report3[0].errors[0].errors[0].keyword, 'type', `should have a type error with ${JSON.stringify(data3)}`)
-    assert.equal(report4, true, `should have no error with ${JSON.stringify(data4)}`)
-    assert.equal(report5, true, `should have no error with ${JSON.stringify(data5)}`)
+    assert.equal(report1, true,
+      `should have no error with ${JSON.stringify(data1)}`)
+    assert.equal(Array.isArray(report2), true,
+      `should have an error with ${JSON.stringify(data2)}`)
+    assert.equal(report2[0].errors[0].errors[0].keyword, 'enum',
+      `should have an enum error with ${JSON.stringify(data2)}`)
+    assert.equal(Array.isArray(report3), true,
+      `should have an error with ${JSON.stringify(data3)}`)
+    assert.equal(report3[0].errors[0].errors[0].keyword, 'type',
+      `should have a type error with ${JSON.stringify(data3)}`)
+    assert.equal(report4, true,
+      `should have no error with ${JSON.stringify(data4)}`)
+    assert.equal(report5, true,
+      `should have no error with ${JSON.stringify(data5)}`)
   })
 
   it('should successfully validate tuple with additionalItems = false', () => {
@@ -331,15 +342,19 @@ describe('generic.array.validate', () => {
     const report2 = validator.validate(data2)
     const report3 = validator.validate(data3)
 
-    assert.equal(report1, true, `should have no error with ${JSON.stringify(data1)}`)
-    assert.equal(report2, true, `should have no error with ${JSON.stringify(data2)}`)
-    assert.equal(Array.isArray(report3), true, `should have an error with ${JSON.stringify(data3)}`)
-    assert.equal(report3[0].error, 'size', `should have a size error with ${JSON.stringify(data3)}`)
+    assert.equal(report1, true,
+      `should have no error with ${JSON.stringify(data1)}`)
+    assert.equal(report2, true,
+      `should have no error with ${JSON.stringify(data2)}`)
+    assert.equal(Array.isArray(report3), true,
+      `should have an error with ${JSON.stringify(data3)}`)
+    assert.equal(report3[0].error, 'size',
+      `should have a size error with ${JSON.stringify(data3)}`)
   })
 })
 
 describe('generic.array.keywords', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully validate data with minItems & maxItems', () => {
     const schema = { type: 'array', minItems: 2, maxItems: 3 }
@@ -357,14 +372,20 @@ describe('generic.array.keywords', () => {
     const report4 = validator.validate(data4)
     const report5 = validator.validate(data5)
 
-    assert.ok(report1 instanceof Array, 'should successfully validate with not enough items')
-    assert.equal(report1[0].keyword, 'minItems', 'report1 should have the minItems keyword')
-    assert.ok(report2 instanceof Array, 'should successfully validate with not enough items')
-    assert.equal(report2[0].keyword, 'minItems', 'report2 should have the minItems keyword')
-    assert.ok(report3, `should successfully validate ${data3}`)
-    assert.ok(report4, `should successfully validate ${data4}`)
-    assert.ok(report2 instanceof Array, 'should successfully validate with too many items')
-    assert.equal(report2[0].keyword, 'minItems', 'report5 should have the maxItems keyword')
+    assert.equal(report1 instanceof Array, true,
+      'should successfully validate with not enough items')
+    assert.equal(report1[0].keyword, 'minItems',
+      'report1 should have the minItems keyword')
+    assert.equal(report2 instanceof Array, true,
+      'should successfully validate with not enough items')
+    assert.equal(report2[0].keyword, 'minItems',
+      'report2 should have the minItems keyword')
+    assert.equal(report3, true, `should successfully validate ${data3}`)
+    assert.equal(report4, true, `should successfully validate ${data4}`)
+    assert.ok(report2 instanceof Array,
+      'should successfully validate with too many items')
+    assert.equal(report2[0].keyword, 'minItems',
+      'report5 should have the maxItems keyword')
     assert.ok(report5 instanceof Array, `should successfully validate ${data5}`)
   })
 
@@ -380,9 +401,11 @@ describe('generic.array.keywords', () => {
     const report2 = validator.validate(data2)
     const report3 = validator.validate(data3)
 
-    assert.ok(report1, `should successfully validate ${data1}`)
-    assert.ok(report2 instanceof Array, 'should successfully validate with non unique items')
-    assert.equal(report2[0].keyword, 'uniqueItems', 'report2 should have the uniqueItems keyword')
-    assert.ok(report3, `should successfully validate ${data3}`)
+    assert.equal(report1, true, `should successfully validate ${data1}`)
+    assert.ok(report2 instanceof Array,
+      'should successfully validate with non unique items')
+    assert.equal(report2[0].keyword,
+      'uniqueItems', 'report2 should have the uniqueItems keyword')
+    assert.equal(report3, true, `should successfully validate ${data3}`)
   })
 })

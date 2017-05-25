@@ -1,12 +1,12 @@
 'use strict'
 
 const assert = require('assert')
-const compiler = require('../../../lib/compiler')
+const api = require('../../../lib/api')
 
 /* global describe it */
 
 describe('generic.string.validateSchema', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully validate schema', () => {
     const schema = {
@@ -41,7 +41,7 @@ describe('generic.string.validateSchema', () => {
     }
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value/)
+      instance.compile(schema), /Invalid default value/)
   })
 
   it('should successfully validate schema with maxLength', () => {
@@ -145,45 +145,33 @@ describe('generic.string.validateSchema', () => {
 })
 
 describe('generic.string.validate', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = { type: 'string', default: 'abc' }
   const validator = instance.compile(schema)
 
   it('should successfully validate a string', () => {
-    const report1 = validator.validate(null)
-    const report2 = validator.validate('xyz')
-    const report3 = validator.validate(undefined)
-    const report4 = validator.validate('Déjà vu')
-    const report5 = validator.validate('')
-    const report6 = validator.validate('42')
+    [ null, 'xyz', 'Déjà vue', '', '42', undefined ].forEach((data) => {
+      const report = validator.validate(data)
 
-    assert.equal(report1, true, 'should have no error with `null`')
-    assert.equal(report2, true, 'should have no error with `xyz`')
-    assert.equal(report3, true, 'should have no error with `undefined` using default value')
-    assert.equal(report4, true, 'should have no error with unicode `Déjà vu`')
-    assert.equal(report5, true, 'should have no error with an empty string')
-    assert.equal(report6, true, 'should have no error with `42`')
+      data = JSON.stringify(data)
+
+      assert.ok(report, `should have no error with ${data}`)
+    })
   })
 
   it('should successfully validate a non string', () => {
-    const report1 = validator.validate(true)
-    const report2 = validator.validate(false)
-    const report3 = validator.validate([])
-    const report4 = validator.validate(() => {})
-    const report5 = validator.validate(123)
-    const report6 = validator.validate({})
+    [ true, false, [], () => {}, 123, {} ].forEach((data) => {
+      const reports = validator.validate(data)
 
-    assert.equal(report1[0].keyword, 'type', 'should have no error with `true`')
-    assert.equal(report2[0].keyword, 'type', 'should have no error with `false`')
-    assert.equal(report3[0].keyword, 'type', 'should have no error with `[]`')
-    assert.equal(report4[0].keyword, 'type', 'should have no error with `() => {}`')
-    assert.equal(report5[0].keyword, 'type', 'should have no error with `123`')
-    assert.equal(report6[0].keyword, 'type', 'should have no error with `{}`')
+      data = JSON.stringify(data)
+
+      assert.equal(reports[0].keyword, 'type', `should have no error with ${data}`)
+    })
   })
 })
 
 describe('generic.string.keywords.enum', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully validate schema with enum', () => {
     const schema = {
@@ -236,12 +224,12 @@ describe('generic.string.keywords.enum', () => {
     }
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value "d"/)
+      instance.compile(schema), /Invalid default value "d"/)
   })
 })
 
 describe('generic.string.keywords.format', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully validate with a non existing format', () => {
     const schema = {
@@ -251,12 +239,12 @@ describe('generic.string.keywords.format', () => {
     }
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Unknow format/)
+      instance.compile(schema), /Unknow format/)
   })
 })
 
 describe('generic.string.keywords.format.date-time', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
 
   it('should successfully validate with current date value', () => {
     const schema = {
@@ -265,7 +253,7 @@ describe('generic.string.keywords.format.date-time', () => {
       default: JSON.parse(JSON.stringify(new Date()))
     }
 
-    assert.doesNotThrow(() => instance.validateSchema(schema))
+    assert.doesNotThrow(() => instance.compile(schema))
   })
 
   it('should successfully validate with a bad date-time value', () => {
@@ -276,12 +264,12 @@ describe('generic.string.keywords.format.date-time', () => {
     }
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value/)
+      instance.compile(schema), /Invalid default value/)
   })
 })
 
 describe('generic.string.keywords.format.email', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = {
     type: 'string',
     format: 'email'
@@ -297,12 +285,12 @@ describe('generic.string.keywords.format.email', () => {
     schema.default = 'demo @example.com'
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value/)
+      instance.compile(schema), /Invalid default value/)
   })
 })
 
 describe('generic.string.keywords.format.hostname', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = {
     type: 'string',
     format: 'hostname'
@@ -318,12 +306,12 @@ describe('generic.string.keywords.format.hostname', () => {
     schema.default = 'example/com'
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value/)
+      instance.compile(schema), /Invalid default value/)
   })
 })
 
 describe('generic.string.keywords.format.ipv4', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = {
     type: 'string',
     format: 'ipv4'
@@ -339,12 +327,12 @@ describe('generic.string.keywords.format.ipv4', () => {
     schema.default = '256.0.0.0'
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value/)
+      instance.compile(schema), /Invalid default value/)
   })
 })
 
 describe('generic.string.keywords.format.ipv6', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = {
     type: 'string',
     format: 'ipv6'
@@ -360,12 +348,12 @@ describe('generic.string.keywords.format.ipv6', () => {
     schema.default = 'g:0:0:0:0:ffff:ff00:0'
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value/)
+      instance.compile(schema), /Invalid default value/)
   })
 })
 
 describe('generic.string.keywords.format.uri', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = {
     type: 'string',
     format: 'uri'
@@ -381,12 +369,12 @@ describe('generic.string.keywords.format.uri', () => {
     schema.default = 'pamela.98'
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value/)
+      instance.compile(schema), /Invalid default value/)
   })
 })
 
 describe('generic.string.keywords.maxLength', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = {
     type: 'string',
     default: 'xyz'
@@ -395,25 +383,25 @@ describe('generic.string.keywords.maxLength', () => {
   it('should successfully validate exacting size', () => {
     schema.maxLength = schema.default.length
 
-    assert.doesNotThrow(() => instance.validateSchema(schema))
+    assert.doesNotThrow(() => instance.compile(schema))
   })
 
   it('should successfully validate with exceeding size', () => {
     schema.maxLength = schema.default.length - 1
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value/)
+      instance.compile(schema), /Invalid default value/)
   })
 
   it('should successfully validate with a null default value', () => {
     schema.default = null
 
-    assert.doesNotThrow(() => instance.validateSchema(schema))
+    assert.doesNotThrow(() => instance.compile(schema))
   })
 })
 
 describe('generic.string.keywords.minLength', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = {
     type: 'string',
     default: 'xyz'
@@ -422,25 +410,25 @@ describe('generic.string.keywords.minLength', () => {
   it('should successfully validate with exacting size', () => {
     schema.minLength = schema.default.length
 
-    assert.doesNotThrow(() => instance.validateSchema(schema))
+    assert.doesNotThrow(() => instance.compile(schema))
   })
 
   it('should successfully validate with fewer character', () => {
     schema.default = schema.default.substring(1)
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Invalid default value/)
+      instance.compile(schema), /Invalid default value/)
   })
 
   it('should successfully validate with a null default value', () => {
     schema.default = null
 
-    assert.doesNotThrow(() => instance.validateSchema(schema))
+    assert.doesNotThrow(() => instance.compile(schema))
   })
 })
 
 describe('generic.string.keywords.pattern', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = {
     type: 'string',
     pattern: '^(\\([0-9]{3}\\))?[0-9]{3}-[0-9]{4}$'
@@ -456,21 +444,21 @@ describe('generic.string.keywords.pattern', () => {
       instance.validateSchema(schema), `should successfully validate ${schema.default}`)
 
     schema.default = '(888)555-1212 ext. 532'
-    assert.throws(() => instance.validateSchema(schema),
+    assert.throws(() => instance.compile(schema),
       /Invalid default value/, `should successfully validate ${schema.default}`)
 
     schema.default = '(800)FLOWERS'
-    assert.throws(() => instance.validateSchema(schema),
+    assert.throws(() => instance.compile(schema),
       /Invalid default value/, `should successfully validate ${schema.default}`)
 
     schema.default = null
-    assert.throws(() => instance.validateSchema(schema),
+    assert.throws(() => instance.compile(schema),
       /Invalid default value/, `should successfully validate ${schema.default}`)
   })
 })
 
 describe('generic.string.keywords.required', () => {
-  const instance = compiler.instance()
+  const instance = api.instance()
   const schema = {
     type: 'string',
     required: true
@@ -487,8 +475,7 @@ describe('generic.string.keywords.required', () => {
   it('should successfully validate an empty string', () => {
     const report = validator.validate('')
 
-    assert.equal(report.length, 1, 'should have only one error item')
-    assert.equal(report[0].keyword, 'required', 'should have `required` keyword error')
+    assert.equal(report, true, 'should have no error item')
   })
 
   it('should successfully validate a non empty string', () => {
