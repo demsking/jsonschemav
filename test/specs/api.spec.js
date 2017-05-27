@@ -193,7 +193,7 @@ describe('jsv.compile', () => {
   })
 })
 
-describe('jsv.async', async () => {
+describe('jsv.async', () => {
   const jsv = new JsonSchemav({ async: true })
 
   jsv.addType('twitter', function (data) {
@@ -207,21 +207,21 @@ describe('jsv.async', async () => {
   })
 
   const schema = { type: 'twitter' }
-  const instance = await jsv.compile(schema)
 
-  it('should successfully validate with an invalid data', async () => {
-    try {
-      await instance.validate('demsking')
-    } catch (err) {
-      assert.equal(err.message, 'Already used')
-    }
-  })
+  jsv.compile(schema).then((instance) => {
+    it('should successfully validate with an invalid data', (done) => {
+      instance.validate('demsking')
+        .then(() => done(new Error()))
+        .catch((err) => {
+          assert.equal(err.message, 'Already used')
+          done()
+        })
+    })
 
-  it('should successfully validate with a valid data', async () => {
-    try {
-      await instance.validate('success')
-    } catch (err) {
-      throw err
-    }
+    it('should successfully validate with a valid data', (done) => {
+      instance.validate('success')
+        .then(() => done())
+        .catch(done)
+    })
   })
 })

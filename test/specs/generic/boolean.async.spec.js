@@ -20,28 +20,33 @@ describe('generic.boolean.async.compile', () => {
   })
 })
 
-describe('generic.boolean.async.validate', async () => {
+describe('generic.boolean.async.validate', () => {
   const jsv = new JsonSchemav({ async: true })
   const schema = { type: 'boolean', default: true }
-  const instance = await jsv.compile(schema)
 
-  it('should successfully validate a boolean', async () => {
-    const report1 = await instance.validate(true)
-    const report2 = await instance.validate(false)
+  jsv.compile(schema).then((instance) => {
+    it('should successfully validate a boolean', () => {
+      instance.validate(true).then((report) => {
+        assert.equal(report, true, 'should have no error with `true`')
+      })
 
-    assert.equal(report1, true, 'should have no error with `true`')
-    assert.equal(report2, true, 'should have no error with `false`')
-  })
+      instance.validate(false).then((report) => {
+        assert.equal(report, true, 'should have no error with `false`')
+      })
+    })
 
-  it('should successfully validate a non boolean', () => {
-    [ 123, null, [], () => {}, 'abc', {} ].forEach(async (data) => {
-      try {
-        await instance.validate(data)
-      } catch (report) {
-        data = JSON.stringify(data)
+    it('should successfully validate a non boolean', () => {
+      [ 123, null, [], () => {}, 'abc', {} ].forEach((data) => {
+        const message = `should have no error with ${JSON.stringify(data)}`
 
-        assert.equal(report[0].keyword, 'type', `should have no error with ${data}`)
-      }
+        instance.validate(data)
+          .then(() => {
+            throw new Error(message)
+          })
+          .catch((report) => {
+            assert.equal(report[0].keyword, 'type', message)
+          })
+      })
     })
   })
 })
