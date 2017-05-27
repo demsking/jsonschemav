@@ -43,8 +43,8 @@ describe('generic.boolean.async.validate', () => {
           .then(() => {
             throw new Error(message)
           })
-          .catch((report) => {
-            assert.equal(report[0].keyword, 'type', message)
+          .catch((err) => {
+            assert.equal(err.errors[0].keyword, 'type', message)
           })
       })
     })
@@ -63,10 +63,10 @@ describe('generic.boolean.async.keywords.enum', () => {
 
     jsv.compile(schema)
       .then(() => done())
-      .catch(() => done(new Error()))
+      .catch(done)
   })
 
-  it('should successfully validate schema with unknow default value in enum', (done) => {
+  it('should successfully validate schema with unknown default value in enum', (done) => {
     const schema = {
       type: 'boolean',
       enum: [ true ],
