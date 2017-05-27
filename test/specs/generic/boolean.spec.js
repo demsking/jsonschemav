@@ -1,12 +1,12 @@
 'use strict'
 
 const assert = require('assert')
-const api = require('../../../lib/api')
+const JsonSchemav = require('../../../lib/api')
 
 /* global describe it */
 
 describe('generic.boolean.validateSchema', () => {
-  const instance = api.instance()
+  const jsv = new JsonSchemav()
 
   it('should successfully validate schema', () => {
     const schema = {
@@ -14,7 +14,7 @@ describe('generic.boolean.validateSchema', () => {
     }
 
     assert.doesNotThrow(() => {
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     })
   })
 
@@ -25,7 +25,7 @@ describe('generic.boolean.validateSchema', () => {
     }
 
     assert.doesNotThrow(() => {
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     })
   })
 
@@ -36,39 +36,42 @@ describe('generic.boolean.validateSchema', () => {
     }
 
     assert.throws(() =>
-      instance.compile(schema), /Invalid default value/)
+      jsv.compile(schema), /Invalid default value/)
   })
 })
 
 describe('generic.boolean.validate', () => {
-//   const instance = api.instance()
-//   const schema = { type: 'boolean', default: true }
-//   const validator = instance.compile(schema)
+  const jsv = new JsonSchemav()
+  const schema = { type: 'boolean', default: true }
+  const instance = jsv.compile(schema)
 
-//   it('should successfully validate a boolean', () => {
-//     Promise.all([
-//       validator.validate(true),
-//       validator.validate(false),
-//       validator.validate(undefined)
-//     ]).then((results) => {
-//       assert.equal(results[0], true, 'should have no error with `true`')
-//       assert.equal(results[1], false, 'should have no error with `false`')
-//       assert.equal(results[2], true, 'should have no error with `undefined` value')
-//     })
-//   })
+  it('should successfully validate a boolean', () => {
+    const report1 = instance.validate(true)
+    const report2 = instance.validate(false)
 
-//   it('should successfully validate a non boolean', (done) => {
-//     [ 123, null, [], {}, 'abc', () => {} ].forEach((item) =>
-//       validator.validate(item)
-//         .then(() => done(new Error(`should have an error with ${item}`)))
-//         .catch((reasons) => assert.equal(reasons[0].keyword, 'type',
-//           `should have no error with ${item}`)))
-//     done()
-//   })
+    assert.equal(report1, true, 'should have no error with `true`')
+    assert.equal(report2, true, 'should have no error with `false`')
+  })
+
+  it('should successfully validate a non boolean', () => {
+    const report1 = instance.validate(123)
+    const report2 = instance.validate(null)
+    const report3 = instance.validate([])
+    const report4 = instance.validate(() => {})
+    const report5 = instance.validate('abc')
+    const report6 = instance.validate({})
+
+    assert.equal(report1[0].keyword, 'type', 'should have no error with `123`')
+    assert.equal(report2[0].keyword, 'type', 'should have no error with `null`')
+    assert.equal(report3[0].keyword, 'type', 'should have no error with `[]`')
+    assert.equal(report4[0].keyword, 'type', 'should have no error with `() => {}`')
+    assert.equal(report5[0].keyword, 'type', 'should have no error with `abc`')
+    assert.equal(report6[0].keyword, 'type', 'should have no error with `{}`')
+  })
 })
 
 describe('generic.boolean.keywords.enum', () => {
-  const instance = api.instance()
+  const jsv = new JsonSchemav()
 
   it('should successfully validate schema with enum', () => {
     const schema = {
@@ -77,7 +80,7 @@ describe('generic.boolean.keywords.enum', () => {
     }
 
     assert.doesNotThrow(() => {
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     })
   })
 
@@ -88,7 +91,7 @@ describe('generic.boolean.keywords.enum', () => {
     }
 
     assert.throws(() =>
-      instance.validateSchema(schema), /enum must be a list of boolean/)
+      jsv.validateSchema(schema), /enum must be a list of boolean/)
   })
 
   it('should successfully validate schema with non unique enum', () => {
@@ -98,7 +101,7 @@ describe('generic.boolean.keywords.enum', () => {
     }
 
     assert.throws(() =>
-      instance.validateSchema(schema), /enum must be a list of unique boolean/)
+      jsv.validateSchema(schema), /enum must be a list of unique boolean/)
   })
 
   it('should successfully validate schema with default value in enum', () => {
@@ -109,7 +112,7 @@ describe('generic.boolean.keywords.enum', () => {
     }
 
     assert.doesNotThrow(() => {
-      instance.validateSchema(schema)
+      jsv.compile(schema)
     })
   })
 
@@ -121,6 +124,6 @@ describe('generic.boolean.keywords.enum', () => {
     }
 
     assert.throws(() =>
-      instance.compile(schema), /Invalid default value false/)
+      jsv.compile(schema), /Invalid default value false/)
   })
 })

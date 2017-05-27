@@ -1,12 +1,12 @@
 'use strict'
 
 const assert = require('assert')
-const api = require('../../../lib/api')
+const JsonSchemav = require('../../../lib/api')
 
 /* global describe it */
 
 describe('generic.object.validateSchema', () => {
-  const instance = api.instance()
+  const jsv = new JsonSchemav()
 
   it('should successfully validate schema with maxProperties', () => {
     const schema = {
@@ -15,30 +15,30 @@ describe('generic.object.validateSchema', () => {
     }
 
     assert.doesNotThrow(() =>
-      instance.validateSchema(schema), 'should validate an interger value')
+      jsv.validateSchema(schema), 'should validate an interger value')
 
     assert.doesNotThrow(() => {
       schema.maxProperties = 0
 
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate an 0 interger value')
 
     assert.throws(() => {
       schema.maxProperties = -1
 
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /maxProperties must be greater than, or equal to, 0/, 'should validate with a negative integer value `-1`')
 
     assert.throws(() => {
       schema.maxProperties = 'abc'
 
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /maxProperties must be an integer/, 'should validate with a string value `abc`')
 
     assert.throws(() => {
       schema.maxProperties = '123'
 
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /maxProperties must be an integer/, 'should validate with a string value value `123`')
   })
 
@@ -49,30 +49,30 @@ describe('generic.object.validateSchema', () => {
     }
 
     assert.doesNotThrow(() =>
-      instance.validateSchema(schema), 'should validate an interger value')
+      jsv.validateSchema(schema), 'should validate an interger value')
 
     assert.doesNotThrow(() => {
       schema.minProperties = 0
 
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate an 0 interger value')
 
     assert.throws(() => {
       schema.minProperties = -1
 
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /minProperties must be greater than, or equal to, 0/, 'should validate with a negative integer value `-1`')
 
     assert.throws(() => {
       schema.minProperties = 'abc'
 
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /minProperties must be an integer/, 'should validate with a string value `abc`')
 
     assert.throws(() => {
       schema.minProperties = '123'
 
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /minProperties must be an integer/, 'should validate with a string value value `123`')
   })
 
@@ -83,57 +83,57 @@ describe('generic.object.validateSchema', () => {
 
     assert.doesNotThrow(() => {
       schema.properties = { name: { type: 'string' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate an unique array values')
 
     assert.throws(() => {
       schema.properties = null
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /properties cannot be null/, 'should validate with a null properties entry')
 
     assert.throws(() => {
       schema.properties = undefined
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /properties cannot be undefined/, 'should validate with an undefined properties entry')
 
     assert.throws(() => {
       schema.properties = 'invalid entry'
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /properties must be an object/, 'should validate with a non object properties entry')
 
     assert.throws(() => {
       schema.properties = []
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /properties must be an object/, 'should validate with a array properties entry')
 
     assert.throws(() => {
       schema.properties = { name: null }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /A property entry cannot be null/, 'should validate with a null property entry')
 
     assert.throws(() => {
       schema.properties = { name: undefined }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /A property entry cannot be undefined/, 'should validate with an undefined property entry')
 
     assert.throws(() => {
       schema.properties = { name: 'Sébastien' }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /A property entry must be a JSON Schema/, 'should validate with a string property entry')
 
     assert.throws(() => {
       schema.properties = { name: null }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /A property entry cannot be null/, 'should validate with a null property entry')
 
     assert.throws(() => {
       schema.properties = { name: { type: 'string', default: 123 } }
-      instance.compile(schema)
+      jsv.compile(schema)
     }, /Invalid default value 123/, 'should validate with a non valid JSON Schema property entry')
 
     assert.doesNotThrow(() => {
       schema.properties = { name: { type: 'string', default: 'abc' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate with a valid JSON Schema property entry')
   })
 
@@ -144,42 +144,42 @@ describe('generic.object.validateSchema', () => {
 
     assert.throws(() => {
       schema.patternProperties = null
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /patternProperties cannot be null/, 'should validate with a null patternProperties value')
 
     assert.throws(() => {
       schema.patternProperties = undefined
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /patternProperties cannot be undefined/, 'should validate with an undefined patternProperties value')
 
     assert.throws(() => {
       schema.patternProperties = []
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /patternProperties must be an object/, 'should validate with a non object value')
 
     assert.doesNotThrow(() => {
       schema.patternProperties = {}
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate with an empty patternProperties value')
 
     assert.throws(() => {
       schema.patternProperties = { 'invalid reg exp (': {} }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /Invalid regular expression/, 'should validate with an invalid regular expression key')
 
     assert.throws(() => {
       schema.patternProperties = { '[a-z]+': null }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /A property entry cannot be null/, 'should validate with a null property entry')
 
     assert.throws(() => {
       schema.patternProperties = { '[a-z]+': { type: 'undefined' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /A property entry must be a valid JSON Schema/, 'should validate with a non valid property JSON Schema entry')
 
     assert.doesNotThrow(() => {
       schema.patternProperties = { '[a-z]+': { type: 'string' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate with a valid property JSON Schema entry')
   })
 
@@ -190,32 +190,32 @@ describe('generic.object.validateSchema', () => {
 
     assert.throws(() => {
       schema.additionalProperties = null
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /additionalProperties cannot be null/, 'should validate with a null additionalProperties value')
 
     assert.throws(() => {
       schema.additionalProperties = undefined
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /additionalProperties cannot be undefined/, 'should validate with an undefined additionalProperties value')
 
     assert.throws(() => {
       schema.additionalProperties = []
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /additionalProperties must be a boolean or a schema/, 'should validate with a non object value')
 
     assert.throws(() => {
       schema.additionalProperties = {}
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /additionalProperties must be a valid JSON Schema/, 'should validate with an empty additionalProperties value')
 
     assert.throws(() => {
       schema.additionalProperties = { type: 'undefined' }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /additionalProperties must be a valid JSON Schema/, 'should validate with an invalid additional property value')
 
     assert.throws(() => {
       schema.additionalProperties = { name: { type: null } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /additionalProperties must be a valid JSON Schema/, 'should validate with an invalid additional property value')
 
     assert.doesNotThrow(() => {
@@ -223,22 +223,22 @@ describe('generic.object.validateSchema', () => {
         type: 'object',
         properties: {
           name: { type: 'string' } } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate with a valid JSON Schema additionalProperty entry')
 
     assert.throws(() => {
       schema.additionalProperties = { name: { type: null } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /additionalProperties must be a valid JSON Schema/, 'should validate with an invalid additional property value')
 
     assert.throws(() => {
       schema.additionalProperties = { name: { type: null } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /additionalProperties must be a valid JSON Schema/, 'should validate with an invalid additional property value')
 
     assert.doesNotThrow(() => {
       schema.additionalProperties = true
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate with a boolean dependencies value')
   })
 
@@ -248,12 +248,12 @@ describe('generic.object.validateSchema', () => {
       required: [ 'name' ]
     }
 
-    assert.throws(() => instance.validateSchema(schema),
+    assert.throws(() => jsv.validateSchema(schema),
       /Missing properties entry/, 'should validate with missing properties entry')
 
     assert.throws(() => {
       schema.properties = {}
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /Missing 'name' property/, 'should validate with missing required property')
   })
 
@@ -264,75 +264,75 @@ describe('generic.object.validateSchema', () => {
 
     assert.throws(() => {
       schema.dependencies = null
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /dependencies cannot be null/, 'should validate with a null dependencies value')
 
     assert.throws(() => {
       schema.dependencies = undefined
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /dependencies cannot be undefined/, 'should validate with an undefined dependencies value')
 
     assert.throws(() => {
       schema.dependencies = []
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /dependencies must be an object/, 'should validate with a non object value')
 
     assert.doesNotThrow(() => {
       schema.dependencies = {}
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate with an empty dependencies value')
 
     assert.throws(() => {
       schema.dependencies = { address: [ 'city' ] }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /Missing properties entry/, 'should validate with a missing properties entry')
 
     assert.throws(() => {
       schema.dependencies = { address: [ 'city' ] }
       schema.properties = { city: { type: 'string' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /Missing 'address' property/, 'should validate with a missing property entry')
 
     assert.throws(() => {
       schema.dependencies = { address: [ 'city', 'country', 'city' ] }
       schema.properties = { city: { type: 'string' }, address: { type: 'string' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /A dependency entry must be a list of unique string/, 'should validate with a non unique dependency entry')
 
     assert.throws(() => {
       schema.dependencies = { address: [ 'city', 'country' ] }
       schema.properties = { city: { type: 'string' }, address: { type: 'string' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /Missing 'country' property/, 'should validate with a missing dependency property')
 
     assert.throws(() => {
       schema.dependencies = { country: null }
       schema.properties = { country: { type: 'string' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /A dependency entry cannot be null/, 'should validate with a null dependency entry')
 
     assert.throws(() => {
       schema.dependencies = { country: { type: 'undefined' } }
       schema.properties = { country: { type: 'string' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, /A dependency entry must be a valid JSON Schema/, 'should validate with a non valid dependency JSON Schema entry')
 
     assert.doesNotThrow(() => {
       schema.dependencies = { country: { type: 'string' } }
       schema.properties = { country: { type: 'string' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate with a valid dependency JSON Schema entry')
 
     assert.doesNotThrow(() => {
       schema.dependencies = { address: [ 'city' ] }
       schema.properties = { city: { type: 'string' }, address: { type: 'string' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate with a dependency array entry')
 
     assert.doesNotThrow(() => {
       schema.dependencies = { address: [ 'city' ], country: { type: 'string' } }
       schema.properties = { address: { type: 'string' }, city: { type: 'string' }, country: { type: 'string' } }
-      instance.validateSchema(schema)
+      jsv.validateSchema(schema)
     }, 'should validate with both dependency JSON Schema and dependency array entries')
   })
 
@@ -343,7 +343,7 @@ describe('generic.object.validateSchema', () => {
       default: { name: 'Sébastien' }
     }
 
-    assert.doesNotThrow(() => instance.validateSchema(schema))
+    assert.doesNotThrow(() => jsv.validateSchema(schema))
   })
 
   it('should successfully validate schema with non object default value', () => {
@@ -354,21 +354,21 @@ describe('generic.object.validateSchema', () => {
     }
 
     assert.throws(() =>
-      instance.compile(schema), /Invalid default value/)
+      jsv.compile(schema), /Invalid default value/)
   })
 })
 
 describe('generic.object.validate', () => {
-  const instance = api.instance()
+  const jsv = new JsonSchemav()
   const schema = {
     type: 'object',
     properties: { name: { type: 'string' } },
     default: { name: 'Sébastien' } }
-  const validator = instance.compile(schema)
+  const instance = jsv.compile(schema)
 
   it('should successfully validate a object', () => {
     [ { name: null }, { name: 'KDE Plasma' }, undefined ].forEach((data) => {
-      const report = validator.validate(data)
+      const report = instance.validate(data)
 
       data = JSON.stringify(data)
 
@@ -378,7 +378,7 @@ describe('generic.object.validate', () => {
 
   it('should successfully validate an invalid object', () => {
     [ true, false, [], () => {}, 'abc', 123, null ].forEach((data) => {
-      const reports = validator.validate(data)
+      const reports = instance.validate(data)
 
       data = JSON.stringify(data)
 
@@ -388,38 +388,38 @@ describe('generic.object.validate', () => {
 })
 
 describe('generic.object.keywords.required', () => {
-  const instance = api.instance()
+  const jsv = new JsonSchemav()
   const schema = {
     type: 'object',
     properties: { name: { type: 'string' } },
     required: [ 'name' ]
   }
-  const validator = instance.compile(schema)
+  const instance = jsv.compile(schema)
 
   it('should successfully validate data', () => {
-    assert.equal(validator.validate({ name: 'Sébastien' }), true)
+    assert.equal(instance.validate({ name: 'Sébastien' }), true)
   })
 
   it('should successfully validate a missing property', () => {
-    const report = validator.validate({ email: 'u@example.com' })
+    const report = instance.validate({ email: 'u@example.com' })
 
     assert.equal(Array.isArray(report), true)
   })
 })
 
 describe('generic.object.keywords.maxProperties', () => {
-  const instance = api.instance()
+  const jsv = new JsonSchemav()
   const schema = { type: 'object', maxProperties: 3 }
-  const validator = instance.compile(schema)
+  const instance = jsv.compile(schema)
 
   it('should successfully validate with maximum properties', () => {
-    const report = validator.validate({ a: 1, b: 2, c: 3 })
+    const report = instance.validate({ a: 1, b: 2, c: 3 })
 
     assert.equal(report, true)
   })
 
   it('should successfully validate with exceeding size', () => {
-    const report = validator.validate({ a: 1, b: 2, c: 3, d: 4 })
+    const report = instance.validate({ a: 1, b: 2, c: 3, d: 4 })
 
     assert.equal(Array.isArray(report), true, 'report should have errors')
     assert.equal(report.length, 1, 'report should only have one error')
@@ -428,18 +428,18 @@ describe('generic.object.keywords.maxProperties', () => {
 })
 
 describe('generic.object.keywords.minProperties', () => {
-  const instance = api.instance()
+  const jsv = new JsonSchemav()
   const schema = { type: 'object', minProperties: 2 }
-  const validator = instance.compile(schema)
+  const instance = jsv.compile(schema)
 
   it('should successfully validate with minimal size', () => {
-    const report = validator.validate({ a: 1, b: 2 })
+    const report = instance.validate({ a: 1, b: 2 })
 
     assert.equal(report, true)
   })
 
   it('should successfully validate with not enough properties', () => {
-    const report = validator.validate({ a: 1 })
+    const report = instance.validate({ a: 1 })
 
     assert.equal(Array.isArray(report), true, 'report should have errors')
     assert.equal(report.length, 1, 'report should only have one error')
@@ -448,7 +448,7 @@ describe('generic.object.keywords.minProperties', () => {
 })
 
 describe('generic.object.keywords.dependencies', () => {
-  const instance = api.instance()
+  const jsv = new JsonSchemav()
   const schema = {
     type: 'object',
     properties: {
@@ -461,7 +461,7 @@ describe('generic.object.keywords.dependencies', () => {
       credit_card: [ 'billing_address' ]
     }
   }
-  const validator = instance.compile(schema)
+  const instance = jsv.compile(schema)
 
   it('should successfully validate with a valid data', () => {
     const data = {
@@ -470,7 +470,7 @@ describe('generic.object.keywords.dependencies', () => {
       billing_address: '555 Debtor\'s Lane'
     }
 
-    assert.equal(validator.validate(data), true)
+    assert.equal(instance.validate(data), true)
   })
 
   it('should successfully validate with a missing dependency', () => {
@@ -478,7 +478,7 @@ describe('generic.object.keywords.dependencies', () => {
       name: 'John Doe',
       credit_card: 5555555555555555
     }
-    const report = validator.validate(data)
+    const report = instance.validate(data)
 
     assert.equal(report.length, 1, 'should have only one error item')
     assert.equal(report[0].keyword, 'dependencies', 'should have `dependencies` keyword error')
@@ -491,7 +491,7 @@ describe('generic.object.keywords.dependencies', () => {
       name: 'John Doe'
     }
 
-    assert.equal(validator.validate(data), true)
+    assert.equal(instance.validate(data), true)
   })
 
   it('should successfully validate with dependency wihout it parent', () => {
@@ -500,20 +500,20 @@ describe('generic.object.keywords.dependencies', () => {
       billing_address: '555 Debtor\'s Lane'
     }
 
-    assert.equal(validator.validate(data), true)
+    assert.equal(instance.validate(data), true)
   })
 
   it('should successfully validate with bidirectional dependencies', () => {
     schema.dependencies.billing_address = [ 'credit_card' ]
 
-    const validator = instance.compile(schema)
+    const instance = jsv.compile(schema)
     const data1 = { name: 'John Doe', credit_card: 5555555555555555 }
     const data2 = { name: 'John Doe', billing_address: '555 Debtor\'s Lane' }
     const expected1 = [ { prop: 'credit_card', required: 'billing_address' } ]
     const expected2 = [ { prop: 'billing_address', required: 'credit_card' } ]
 
-    assert.deepEqual(validator.validate(data1)[0].missing, expected1, true)
-    assert.deepEqual(validator.validate(data2)[0].missing, expected2, true)
+    assert.deepEqual(instance.validate(data1)[0].missing, expected1, true)
+    assert.deepEqual(instance.validate(data2)[0].missing, expected2, true)
   })
 
   it('should successfully validate with schema dependencies', () => {
@@ -534,7 +534,7 @@ describe('generic.object.keywords.dependencies', () => {
       }
     }
 
-    const validator = instance.compile(schema)
+    const instance = jsv.compile(schema)
     const data1 = {
       name: 'John Doe',
       credit_card: 5555555555555555,
@@ -554,14 +554,14 @@ describe('generic.object.keywords.dependencies', () => {
       required: [ 'billing_address' ],
       message: 'missing required fields' }
 
-    assert.equal(validator.validate(data1), true)
-    assert.deepEqual(validator.validate(data2)[0].missing[0], expected)
-    assert.equal(validator.validate(data3), true)
+    assert.equal(instance.validate(data1), true)
+    assert.deepEqual(instance.validate(data2)[0].missing[0], expected)
+    assert.equal(instance.validate(data3), true)
   })
 })
 
 describe('generic.object.keywords.patternProperties', () => {
-  const instance = api.instance()
+  const jsv = new JsonSchemav()
   const schema = {
     type: 'object',
     patternProperties: {
@@ -570,11 +570,11 @@ describe('generic.object.keywords.patternProperties', () => {
     },
     additionalProperties: false
   }
-  const validator = instance.compile(schema)
+  const instance = jsv.compile(schema)
 
   it('should successfully validate with a valid data', () => {
-    assert.equal(validator.validate({ S_25: 'This is a string' }), true)
-    assert.equal(validator.validate({ I_0: 42 }), true)
+    assert.equal(instance.validate({ S_25: 'This is a string' }), true)
+    assert.equal(instance.validate({ I_0: 42 }), true)
   })
 
   it('should successfully validate with an invalid data', () => {
@@ -582,9 +582,9 @@ describe('generic.object.keywords.patternProperties', () => {
     const data2 = { I_42: 'This is a string' }
     const data3 = { keyword: 'value' }
 
-    const result1 = validator.validate(data1)
-    const result2 = validator.validate(data2)
-    const result3 = validator.validate(data3)
+    const result1 = instance.validate(data1)
+    const result2 = instance.validate(data2)
+    const result3 = instance.validate(data3)
 
     assert.equal(Array.isArray(result1), true, 'data prop starting with a matching property pattern should be have a valid value')
     assert.equal(result1[0].keyword, 'patternProperties')
@@ -602,43 +602,43 @@ describe('generic.object.keywords.patternProperties', () => {
   it('should successfully validate with properties entries', () => {
     schema.properties = {}
 
-    const validator = instance.compile(schema)
+    const instance = jsv.compile(schema)
 
-    assert.equal(validator.validate({ S_25: 'This is a string' }), true)
-    assert.equal(validator.validate({ I_0: 42 }), true)
+    assert.equal(instance.validate({ S_25: 'This is a string' }), true)
+    assert.equal(instance.validate({ I_0: 42 }), true)
   })
 
   it('should successfully validate with no properties', () => {
     schema.properties = {}
     schema.patternProperties = {}
 
-    const validator = instance.compile(schema)
+    const instance = jsv.compile(schema)
 
-    assert.equal(validator.validate({}), true)
-    assert.equal(Array.isArray(validator.validate({ I_0: 42 })), true)
+    assert.equal(instance.validate({}), true)
+    assert.equal(Array.isArray(instance.validate({ I_0: 42 })), true)
   })
 })
 
 describe('generic.object.keywords.additionalProperties', () => {
-  const instance = api.instance()
+  const jsv = new JsonSchemav()
   const schema = {
     type: 'object',
     additionalProperties: true
   }
-  const validator = instance.compile(schema)
+  const instance = jsv.compile(schema)
 
   it('should successfully validate data', () => {
-    assert.equal(validator.validate({}), true)
-    assert.equal(validator.validate({ S_25: 'This is a string' }), true)
-    assert.equal(validator.validate({ I_0: 42 }), true)
+    assert.equal(instance.validate({}), true)
+    assert.equal(instance.validate({ S_25: 'This is a string' }), true)
+    assert.equal(instance.validate({ I_0: 42 }), true)
   })
 
   it('should successfully validate data with additionalProperties = false', () => {
     schema.additionalProperties = false
 
-    const validator = instance.compile(schema)
+    const instance = jsv.compile(schema)
 
-    assert.equal(validator.validate({}), true)
+    assert.equal(instance.validate({}), true)
   })
 
   it('should successfully validate data with additionalProperties = object', () => {
@@ -649,21 +649,21 @@ describe('generic.object.keywords.additionalProperties', () => {
       }
     }
 
-    let validator = instance.compile(schema)
+    let instance = jsv.compile(schema)
 
-    assert.equal(validator.validate({ name: 'Sébastien' }), true)
+    assert.equal(instance.validate({ name: 'Sébastien' }), true)
 
     schema.properties = {
       address: { type: 'string' }
     }
 
-    validator = instance.compile(schema)
+    instance = jsv.compile(schema)
 
-    assert.equal(validator.validate({ name: 'Sébastien' }), true)
+    assert.equal(instance.validate({ name: 'Sébastien' }), true)
 
     schema.additionalProperties.required = [ 'name' ]
 
-    const report = instance.compile(schema).validate({ address: 'Douala' })
+    const report = jsv.compile(schema).validate({ address: 'Douala' })
 
     assert.equal(report[0].keyword, 'additionalProperties',
       'should validate with missing additionalProperties required field')

@@ -1,92 +1,104 @@
 'use strict'
 
 const assert = require('assert')
-const api = require('../../lib/api')
+const JsonSchemav = require('../../lib/api')
 
 /* global describe it */
 
-describe('instance.validateSchema', () => {
-  const instance = api.instance()
+describe('jsv.validateSchema', () => {
+  const jsv = new JsonSchemav()
 
   it('should successfully validate non object schema', () => {
     const schema = 'non object schema'
 
     assert.throws(() =>
-      instance.validateSchema(schema), /schema must be an object/)
+      jsv.validateSchema(schema), /schema must be an object/)
   })
 
   it('should successfully validate a null schema', () => {
     const schema = null
 
     assert.throws(() =>
-      instance.validateSchema(schema), /schema must be an object/)
+      jsv.validateSchema(schema), /schema must be an object/)
   })
 
   it('should successfully validate schema with array type', () => {
-    const schema = {
+    let schema = {
       type: ['string']
     }
 
     assert.throws(() =>
-      instance.validateSchema(schema), /schema.type must be a string/)
+      jsv.validateSchema(schema), /schema.type must be a string/)
+
+    schema = {
+      type: 'object',
+      properties: {
+        name: {
+          type: []
+        }
+      }
+    }
+
+    assert.throws(() => jsv.validateSchema(schema),
+      /A property entry must have at least one item/)
   })
 })
 
-describe('instance.addAlias', () => {
-  const instance = api.instance()
+describe('jsv.addAlias', () => {
+  const jsv = new JsonSchemav()
 
   it('should successfully execute with an invalid alias name', () => {
     assert.throws(() =>
-      instance.addAlias('string', 123), /alias must be a string/)
+      jsv.addAlias('string', 123), /alias must be a string/)
   })
 
   it('should successfully execute with an unknow type', () => {
     assert.throws(() =>
-      instance.addAlias('xyz', 'integer'), /Unknown type 'xyz'/)
+      jsv.addAlias('xyz', 'integer'), /Unknown type 'xyz'/)
   })
 
   it('should successfully create an alias', () => {
-    assert.doesNotThrow(() => instance.addAlias('numeric', 'integer'))
+    assert.doesNotThrow(() => jsv.addAlias('numeric', 'integer'))
   })
 
   it('should successfully create an alias from another alias', () => {
-    assert.doesNotThrow(() => instance.addAlias('number', 'integer'))
+    assert.doesNotThrow(() => jsv.addAlias('number', 'integer'))
   })
 })
 
-describe('instance.addType', () => {
-  const instance = api.instance()
+describe('jsv.addType', () => {
+  const jsv = new JsonSchemav()
 
   it('should successfully add new type', () => {
     assert.doesNotThrow(() =>
-      instance.addType('twitter', () => true))
+      jsv.addType('twitter', () => true))
   })
 
   it('should successfully execute with a non prototype object', () => {
     assert.throws(() =>
-      instance.addType('twitter', {}), /validator must be a function/)
+      jsv.addType('twitter', {}), /validator must be a function/)
   })
 })
 
-describe('instance.removeType', () => {
-  const instance = api.instance()
+describe('jsv.removeType', () => {
+  const jsv = new JsonSchemav()
 
   it('should successfully remove a type', () => {
-    instance.removeType('string')
+    jsv.removeType('string')
 
     const schema = {
       type: 'string'
     }
 
     assert.throws(() =>
-      instance.validateSchema(schema), /Unknown type 'string'/)
+      jsv.validateSchema(schema), /Unknown type 'string'/)
   })
 })
 
-describe('instance.addKeyword', () => {
-  const instance = api.instance()
+describe('jsv.addKeyword', () => {
+  const jsv = new JsonSchemav()
 
-  instance.addType('twitter', (data) => {
+  jsv.addType('twitter', (data) => {
     return data.value.split(/\s/).length === 1
   })
 
@@ -94,17 +106,22 @@ describe('instance.addKeyword', () => {
     const validator = (value, data) => value === data
 
     assert.doesNotThrow(() =>
-      instance.addKeyword('twitter', 'account', validator))
+      jsv.addKeyword('twitter', 'account', validator))
+
+    const instance = jsv.compile({ type: 'twitter' })
+
+    assert.ok(instance.keywords.hasOwnProperty('account'),
+      'instance\'s keywords should have a account entry')
   })
 
   it('should successfully execute with a valid type name', () => {
     assert.throws(() =>
-      instance.addKeyword('xyz', null), /Unknown type 'xyz'/)
+      jsv.addKeyword('xyz', null), /Unknown type 'xyz'/)
   })
 
   it('should successfully execute with a non validator function', () => {
     assert.throws(() =>
-      instance.addKeyword('twitter', null), /validator must be a function/)
+      jsv.addKeyword('twitter', null), /validator must be a function/)
   })
 
   it('should successfully validate with a new type validator', () => {
@@ -115,7 +132,7 @@ describe('instance.addKeyword', () => {
       enum: [ 'ubuntu' ]
     }
 
-    assert.doesNotThrow(() => instance.validateSchema(schema))
+    assert.doesNotThrow(() => jsv.validateSchema(schema))
   })
 
   it('should successfully execute with an invalid default data', () => {
@@ -126,17 +143,17 @@ describe('instance.addKeyword', () => {
     }
 
     assert.throws(() =>
-      instance.compile(schema), /Invalid default value "invalid value"/)
+      jsv.compile(schema), /Invalid default value "invalid value"/)
   })
 })
 
-describe('instance.removeKeyword', () => {
-  const instance = api.instance()
+describe('jsv.removeKeyword', () => {
+  const jsv = new JsonSchemav()
 
-  instance.addKeyword('string', 'equalsTo', (value, data) => data === value)
+  jsv.addKeyword('string', 'equalsTo', (value, data) => data === value)
 
   it('should successfully remove a keyword', () => {
-    instance.removeKeyword('string', 'equalsTo')
+    jsv.removeKeyword('string', 'equalsTo')
 
     const schema = {
       type: 'string',
@@ -144,22 +161,22 @@ describe('instance.removeKeyword', () => {
       default: 'faild'
     }
 
-    assert.doesNotThrow(() => instance.validateSchema(schema))
+    assert.doesNotThrow(() => jsv.validateSchema(schema))
   })
 
   it('should successfully execute with a non existing type', () => {
     assert.throws(() =>
-      instance.removeKeyword('unknow', 'x'), /Unknown type 'unknow'/)
+      jsv.removeKeyword('unknow', 'x'), /Unknown type 'unknow'/)
   })
 })
 
-describe('instance.compile', () => {
-  const instance = api.instance()
+describe('jsv.compile', () => {
+  const jsv = new JsonSchemav()
 
-  instance.addKeyword('string', 'equalsTo', (value, data) => data === value)
+  jsv.addKeyword('string', 'equalsTo', (value, data) => data === value)
 
   it('should successfully remove a keyword', () => {
-    instance.removeKeyword('string', 'equalsTo')
+    jsv.removeKeyword('string', 'equalsTo')
 
     const schema = {
       type: 'string',
@@ -167,11 +184,44 @@ describe('instance.compile', () => {
       default: 'faild'
     }
 
-    assert.doesNotThrow(() => instance.validateSchema(schema))
+    assert.doesNotThrow(() => jsv.validateSchema(schema))
   })
 
   it('should successfully execute with a non existing type', () => {
     assert.throws(() =>
-      instance.removeKeyword('unknow', 'x'), /Unknown type 'unknow'/)
+      jsv.removeKeyword('unknow', 'x'), /Unknown type 'unknow'/)
+  })
+})
+
+describe('jsv.async', async () => {
+  const jsv = new JsonSchemav({ async: true })
+
+  jsv.addType('twitter', function (data) {
+    return new Promise((resolve, reject) => {
+      if (/success/.test(data.value)) {
+        return resolve()
+      }
+
+      reject(new Error('Already used'))
+    })
+  })
+
+  const schema = { type: 'twitter' }
+  const instance = await jsv.compile(schema)
+
+  it('should successfully validate with an invalid data', async () => {
+    try {
+      await instance.validate('demsking')
+    } catch (err) {
+      assert.equal(err.message, 'Already used')
+    }
+  })
+
+  it('should successfully validate with a valid data', async () => {
+    try {
+      await instance.validate('success')
+    } catch (err) {
+      throw err
+    }
   })
 })

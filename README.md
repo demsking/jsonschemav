@@ -13,23 +13,67 @@ npm install --save jsonschemav
 ## Usage
 
 ```javascript
-const jsonschemav = require('jsonschemav')
-const instance = jsonschemav.instance()
+const JsonSchemav = require('jsonschemav')
+const ajv = new JsonSchemav()
 
 const schema = { type: 'string', minLength: 6 }
-const validator = instance.compile(schema)
+const instance = ajv.compile(schema)
 
-console.log(validator.validate('Hello, World!'))
+console.log(instance.validate('Hello, World!'))
 // true
 
-console.log(validator.validate('Hello'))
+console.log(instance.validate('Hello'))
 // [ { keyword: 'minLength',
 //    size: 5,
 //    minLength: 6,
 //    message: 'not enough characters. must be greater than, or equal to, 6' } ]
 
-console.log(validator.validate(true)) 
+console.log(instance.validate(true)) 
 // [ { keyword: 'type', message: 'invalid type input' } ]
+```
+
+### Async Validation
+
+```javascript
+const axios = require('axios')
+const JsonSchemav = require('jsonschemav')
+const ValidationError = require('jsonschemav/lib/generic').ValidationError
+
+const options = { async: true }
+const jsv = new JsonSchemav(options)
+const endpoint = 'https://twitter.com/users/username_available'
+
+jsv.addType('twitter', (data) => new Promise((resolve, reject) => {
+  axios.get(`${endpoint}?username=${data.value}`)
+    .then((response) => {
+      if (response.data.valid) {
+        const message = `The username '${data.value}' does not exists`
+        const report = { keyword: 'notfound' }
+
+        return reject(new ValidationError(message, report))
+      }
+
+      resolve(data.value)
+    }).catch(reject)
+}))
+
+jsv.compile(schema).then(async (instance) => {
+  try {
+    await instance.validate('nonexistingac')
+  } catch (err) {
+    console.error(err.message)
+    // The username 'nonexistingac' does not exists
+    console.error(err.errors)
+    // [ { keyword: 'notfound' } ]
+  }
+
+  try {
+    await instance.validate('demsking')
+    console.log('success')
+  } catch (err) {
+    console.error(err)
+  }
+})
 ```
 
 ## Instance API
@@ -47,10 +91,11 @@ Validate a schema. Throws an error for invalid schema
 **Examples**
 
 ```javascript
+const jsv = new JsonSchemav()
 const schema = { type: 'string' }
 
 try {
-  instance.validateSchema(schema)
+  ajv.validateSchema(schema)
 } catch (err) {
   console.error(err)
 }
@@ -67,10 +112,11 @@ Compile a schema
 **Examples**
 
 ```javascript
+const jsv = new JsonSchemav()
 const schema = { type: 'string' }
-const validator = instance.compile(schema)
+const instance = ajv.compile(schema)
 const data = 'Hello, World!'
-const report = validator.validate(data)
+const report = instance.validate(data)
 
 console.log(report) // true
 ```
@@ -89,12 +135,14 @@ Add an alias for a type
 **Examples**
 
 ```javascript
-instance.addAlias('integer', 'int')
+const jsv = new JsonSchemav()
+
+ajv.addAlias('integer', 'int')
 
 const schema = { type: 'int' }
-const validator = instance.compile(schema)
+const instance = ajv.compile(schema)
 
-const result = validator.validate(123) // true
+const result = instance.validate(123) // true
 ```
 
 ### addType
@@ -109,14 +157,16 @@ Add a new type to the instance
 **Examples**
 
 ```javascript
-instance.addType('binary', (data) => {
+const jsv = new JsonSchemav()
+
+ajv.addType('binary', (data) => {
   return Number.isInteger(data) && /^[01]+$/.test(data.toString())
 })
 
 const schema = { type: 'binary' }
-const validator = instance.compile(schema)
+const instance = ajv.compile(schema)
 
-const result = validator.validate(1111011) // true
+const result = instance.validate(1111011) // true
 ```
 
 ### removeType
@@ -130,10 +180,12 @@ Remove a type from the instance
 **Examples**
 
 ```javascript
-instance.removeType('string')
+const jsv = new JsonSchemav()
+
+ajv.removeType('string')
 
 const schema = { type: 'string' }
-const validator = instance.compile(schema)
+const instance = ajv.compile(schema)
 // throw Error: Unknown type 'string'
 ```
 
@@ -159,12 +211,14 @@ Remove a keyword from a type
 **Examples**
 
 ```javascript
-instance.removeKeyword('string', 'minLength')
+const jsv = new JsonSchemav()
+
+ajv.removeKeyword('string', 'minLength')
 
 const schema = { type: 'string', minLength: 5 }
-const validator = instance.compile(schema)
+const instance = ajv.compile(schema)
 const data = 'abc'
-const result = validator.validate(data) // true
+const result = instance.validate(data) // true
 ```
 
 ## License
