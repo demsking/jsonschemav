@@ -123,6 +123,15 @@ console.log(report) // true
 
 Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Returns an interface with the `validate` member
 
+### addCompileStep
+
+Add a compile step function to a type
+
+**Parameters**
+
+-   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of the type
+-   `compileStepFn` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** A compile function
+
 ### addAlias
 
 Add an alias for a type
@@ -152,7 +161,7 @@ Add a new type to the instance
 **Parameters**
 
 -   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of the new type
--   `validator` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)?** A validation function for the new type
+-   `validateFn` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)?** A validate function for the new type
 
 **Examples**
 
@@ -197,7 +206,7 @@ Add a new keyword to a type
 
 -   `type` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of the type
 -   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of the new keyword
--   `validator` **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** A validation function for the new keyword
+-   `validateFn` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** A validate function for the new keyword
 
 ### removeKeyword
 

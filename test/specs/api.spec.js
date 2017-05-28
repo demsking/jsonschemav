@@ -44,6 +44,36 @@ describe('jsv.validateSchema', () => {
   })
 })
 
+describe('jsv.addCompileStep', () => {
+  const jsv = new JsonSchemav()
+
+  it('should successfully add new compile step', () => {
+    jsv.addCompileStep('string', function () {
+      this.schema.$compiled = true
+    })
+
+    jsv.addCompileStep('string', function () {})
+
+    const instance = jsv.compile({ type: 'string' })
+
+    assert.equal(instance.compileSteps.length, 2,
+      'instance should have one compile step function')
+
+    assert.ok(instance.schema.hasOwnProperty('$compiled'),
+      'instance\'s schema should have a $compiled entry')
+  })
+
+  it('should successfully execute with a valid type name', () => {
+    assert.throws(() =>
+      jsv.addCompileStep('xyz', null), /Unknown type 'xyz'/)
+  })
+
+  it('should successfully execute with a non compile step function', () => {
+    assert.throws(() =>
+      jsv.addCompileStep('string', null), /compileStepFn must be a function/)
+  })
+})
+
 describe('jsv.addAlias', () => {
   const jsv = new JsonSchemav()
 
@@ -76,7 +106,7 @@ describe('jsv.addType', () => {
 
   it('should successfully execute with a non prototype object', () => {
     assert.throws(() =>
-      jsv.addType('twitter', {}), /validator must be a function/)
+      jsv.addType('twitter', {}), /validateFn must be a function/)
   })
 })
 
@@ -84,6 +114,7 @@ describe('jsv.removeType', () => {
   const jsv = new JsonSchemav()
 
   it('should successfully remove a type', () => {
+    jsv.removeType('string')
     jsv.removeType('string')
 
     const schema = {
@@ -103,10 +134,12 @@ describe('jsv.addKeyword', () => {
   })
 
   it('should successfully add new keyword', () => {
-    const validator = (value, data) => value === data
+    const validate = (value, data) => value === data
 
-    assert.doesNotThrow(() =>
-      jsv.addKeyword('twitter', 'account', validator))
+    assert.doesNotThrow(() => {
+      jsv.addKeyword('twitter', 'account', validate)
+      jsv.addKeyword('twitter', 'account', validate)
+    })
 
     const instance = jsv.compile({ type: 'twitter' })
 
@@ -119,12 +152,12 @@ describe('jsv.addKeyword', () => {
       jsv.addKeyword('xyz', null), /Unknown type 'xyz'/)
   })
 
-  it('should successfully execute with a non validator function', () => {
+  it('should successfully execute with a non validate function', () => {
     assert.throws(() =>
-      jsv.addKeyword('twitter', null), /validator must be a function/)
+      jsv.addKeyword('twitter', null), /validateFn must be a function/)
   })
 
-  it('should successfully validate with a new type validator', () => {
+  it('should successfully validate with a new type validate', () => {
     const schema = {
       type: 'twitter',
       account: 'sebastien',
@@ -154,6 +187,8 @@ describe('jsv.removeKeyword', () => {
 
   it('should successfully remove a keyword', () => {
     jsv.removeKeyword('string', 'equalsTo')
+    jsv.removeKeyword('string', 'equalsTo')
+    jsv.removeKeyword('integer', 'keyword')
 
     const schema = {
       type: 'string',
