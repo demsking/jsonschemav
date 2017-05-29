@@ -170,6 +170,40 @@ describe('generic.string.validate', () => {
   })
 })
 
+describe('generic.string.keywords.default', () => {
+  const jsv = new JsonSchemav()
+
+  it('should successfully validate schema with default value now()', () => {
+    ['date', 'time', 'timestamp', 'date-time'].forEach((format) => {
+      const schema = { type: 'string', format: format, default: 'now()' }
+      const instance = jsv.compile(schema)
+      const report = instance.validate(undefined)
+
+      assert.equal(report, true, `should successfully validate with ${format}`)
+    })
+  })
+
+  it('should successfully validate schema with missing embedded field', () => {
+    ['date', 'time', 'timestamp', 'date-time'].forEach((format) => {
+      const schema = {
+        type: 'object',
+        properties: {
+          [format]: {
+            type: 'string',
+            format: format,
+            default: 'now()'
+          }
+        }
+      }
+
+      const instance = jsv.compile(schema)
+      const report = instance.validate({})
+
+      assert.equal(report, true, `should successfully validate with ${format}`)
+    })
+  })
+})
+
 describe('generic.string.keywords.enum', () => {
   const jsv = new JsonSchemav()
 
