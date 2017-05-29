@@ -188,7 +188,7 @@ describe('generic.string.keywords.default', () => {
       const schema = {
         type: 'object',
         properties: {
-          [format]: {
+          datetime: {
             type: 'string',
             format: format,
             default: 'now()'
