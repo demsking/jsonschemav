@@ -14,10 +14,10 @@ npm install --save jsonschemav
 
 ```javascript
 const JsonSchemav = require('jsonschemav')
-const ajv = new JsonSchemav()
+const jsv = new JsonSchemav()
 
 const schema = { type: 'string', minLength: 6 }
-const instance = ajv.compile(schema)
+const instance = jsv.compile(schema)
 
 console.log(instance.validate('Hello, World!'))
 // true
@@ -95,7 +95,7 @@ const jsv = new JsonSchemav()
 const schema = { type: 'string' }
 
 try {
-  ajv.validateSchema(schema)
+  jsv.validateSchema(schema)
 } catch (err) {
   console.error(err)
 }
@@ -114,7 +114,7 @@ Compile a schema
 ```javascript
 const jsv = new JsonSchemav()
 const schema = { type: 'string' }
-const instance = ajv.compile(schema)
+const instance = jsv.compile(schema)
 const data = 'Hello, World!'
 const report = instance.validate(data)
 
@@ -146,10 +146,10 @@ Add an alias for a type
 ```javascript
 const jsv = new JsonSchemav()
 
-ajv.addAlias('integer', 'int')
+jsv.addAlias('integer', 'int')
 
 const schema = { type: 'int' }
-const instance = ajv.compile(schema)
+const instance = jsv.compile(schema)
 
 const result = instance.validate(123) // true
 ```
@@ -168,12 +168,12 @@ Add a new type to the instance
 ```javascript
 const jsv = new JsonSchemav()
 
-ajv.addType('binary', (data) => {
+jsv.addType('binary', (data) => {
   return Number.isInteger(data) && /^[01]+$/.test(data.toString())
 })
 
 const schema = { type: 'binary' }
-const instance = ajv.compile(schema)
+const instance = jsv.compile(schema)
 
 const result = instance.validate(1111011) // true
 ```
@@ -191,10 +191,10 @@ Remove a type from the instance
 ```javascript
 const jsv = new JsonSchemav()
 
-ajv.removeType('string')
+jsv.removeType('string')
 
 const schema = { type: 'string' }
-const instance = ajv.compile(schema)
+const instance = jsv.compile(schema)
 // throw Error: Unknown type 'string'
 ```
 
@@ -222,10 +222,10 @@ Remove a keyword from a type
 ```javascript
 const jsv = new JsonSchemav()
 
-ajv.removeKeyword('string', 'minLength')
+jsv.removeKeyword('string', 'minLength')
 
 const schema = { type: 'string', minLength: 5 }
-const instance = ajv.compile(schema)
+const instance = jsv.compile(schema)
 const data = 'abc'
 const result = instance.validate(data) // true
 ```
