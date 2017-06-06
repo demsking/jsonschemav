@@ -155,7 +155,7 @@ describe('generic.string.validate', () => {
 
       data = JSON.stringify(data)
 
-      assert.ok(report, `should have no error with ${data}`)
+      assert.equal(report, true, `should have no error with ${data}`)
     })
   })
 
