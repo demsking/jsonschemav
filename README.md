@@ -17,19 +17,30 @@ const JsonSchemav = require('jsonschemav')
 const jsv = new JsonSchemav()
 
 const schema = { type: 'string', minLength: 6 }
-const instance = jsv.compile(schema)
+const validator = jsv.compile(schema)
 
-console.log(instance.validate('Hello, World!'))
-// true
+validator
+  .then((instance) => instance.validate('Hello, World!'))
+  .then((parsedData) => {
+    console.log(parsedData)
+  })
 
-console.log(instance.validate('Hello'))
-// [ { keyword: 'minLength',
-//    size: 5,
-//    minLength: 6,
-//    message: 'not enough characters. must be greater than, or equal to, 6' } ]
+validator
+  .then((instance) => instance.validate('Hello'))
+  .catch((err) => {
+    console.error(err.errors)
+    // [ { keyword: 'minLength',
+    //    size: 5,
+    //    minLength: 6,
+    //    message: 'not enough characters. must be greater than, or equal to, 6' } ]
+  })
 
-console.log(instance.validate(true)) 
-// [ { keyword: 'type', message: 'invalid type input' } ]
+validator
+  .then((instance) => instance.validate(true))
+  .catch((err) => {
+    console.error(err.errors)
+    // [ { keyword: 'type', message: 'invalid type input' } ]
+  })
 ```
 
 ### Async Validation
@@ -37,43 +48,39 @@ console.log(instance.validate(true))
 ```javascript
 const axios = require('axios')
 const JsonSchemav = require('jsonschemav')
-const ValidationError = require('jsonschemav/lib/generic').ValidationError
 
-const options = { async: true }
-const jsv = new JsonSchemav(options)
+const jsv = new JsonSchemav()
+const schema = { type: 'twitter' }
 const endpoint = 'https://twitter.com/users/username_available'
 
-jsv.addType('twitter', (data) => new Promise((resolve, reject) => {
-  axios.get(`${endpoint}?username=${data.value}`)
-    .then((response) => {
-      if (response.data.valid) {
-        const message = `The username '${data.value}' does not exists`
-        const report = { keyword: 'notfound' }
+const validationFn = (data) => axios.get(`${endpoint}?username=${data.value}`)
+  .then((response) => {
+    if (response.data.valid) {
+      const message = `The username '${data.value}' does not exists`
 
-        return reject(new ValidationError(message, report))
-      }
+      return Promise.reject({ keyword: 'notfound', message })
+    }
 
-      resolve(data.value)
-    }).catch(reject)
-}))
+    return Promise.resolve(data.value)
+  })
 
-jsv.compile(schema).then(async (instance) => {
-  try {
-    await instance.validate('nonexistingac')
-  } catch (err) {
-    console.error(err.message)
-    // The username 'nonexistingac' does not exists
-    console.error(err.errors)
-    // [ { keyword: 'notfound' } ]
-  }
+jsv.addType('twitter', validationFn)
 
-  try {
-    await instance.validate('demsking')
-    console.log('success')
-  } catch (err) {
+const validator = jsv.compile(schema)
+
+validator
+  .then((instance) => instance.validate('nonexistingac'))
+  .catch((err) => {
     console.error(err)
-  }
-})
+    // [ { keyword: 'notfound',
+    //     message: 'The username \'nonexistingac\' does not exists' } ]
+  })
+
+validator
+  .then((instance) => instance.validate('demsking'))
+  .then(() => {
+    console.log('success')
+  })
 ```
 
 ## Instance API
@@ -113,18 +120,26 @@ Compile a schema
 
 ```javascript
 const jsv = new JsonSchemav()
-const schema = { type: 'string' }
-const data = 'Hello, World!'
+const schema = {
+  type: 'object',
+  properties: {
+    title: { type: 'string' },
+    date: { type: 'string', format: 'date', default: 'now()' }
+  }
+}
+const data = { title: 'Hello, World!' }
 
-jsv.compile(schema).then((instance) => {
-  instance.validate(data)
-    .then((parsedData) => {
-      // use `parsedData` instead `data`
-    })
-    .catch((err) => {
-      // err.errors is a list of parsing error
-    })
-})
+jsv.compile(schema)
+  .then((instance) => instance.validate(data))
+  .then((parsedData) => {
+     // use `parsedData` instead `data`
+     console.log(parsedData)
+     // { title: 'Hello, World!',
+     //   date: '2017-06-12T18:49:14.739Z' }
+  })
+  .catch((err) => {
+     console.error(err.errors) // a list of parsing error
+  })
 ```
 
 Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Returns an interface with the `validate` member
@@ -151,13 +166,18 @@ Add an alias for a type
 
 ```javascript
 const jsv = new JsonSchemav()
+const schema = { type: 'int' }
+const data = 123
 
 jsv.addAlias('integer', 'int')
-
-const schema = { type: 'int' }
-const instance = jsv.compile(schema)
-
-const result = instance.validate(123) // true
+jsv.compile(schema)
+  .then((instance) => instance.validate(data))
+  .then((parsedData) => {
+     // use `parsedData` instead `data`
+  })
+  .catch((err) => {
+     // err.errors is a list of parsing error
+  })
 ```
 
 ### addType
@@ -179,9 +199,17 @@ jsv.addType('binary', (data) => {
 })
 
 const schema = { type: 'binary' }
+const data = 1111011
 const instance = jsv.compile(schema)
 
-const result = instance.validate(1111011) // true
+jsv.compile(schema)
+  .then((instance) => instance.validate(data))
+  .then((parsedData) => {
+     // use `parsedData` instead `data`
+  })
+  .catch((err) => {
+     // err.errors is a list of parsing error
+  })
 ```
 
 ### removeType
@@ -200,7 +228,8 @@ const jsv = new JsonSchemav()
 jsv.removeType('string')
 
 const schema = { type: 'string' }
-const instance = jsv.compile(schema)
+
+jsv.validateSchema(schema)
 // throw Error: Unknown type 'string'
 ```
 
@@ -233,7 +262,12 @@ jsv.removeKeyword('string', 'minLength')
 const schema = { type: 'string', minLength: 5 }
 const instance = jsv.compile(schema)
 const data = 'abc'
-const result = instance.validate(data) // true
+
+jsv.compile(schema)
+  .then((instance) => instance.validate(data))
+  .then((parsedData) => {
+     // success
+  })
 ```
 
 ## License
