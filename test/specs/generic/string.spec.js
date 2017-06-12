@@ -1,6 +1,7 @@
 'use strict'
 
 const assert = require('assert')
+const should = require('../..').should
 const JsonSchemav = require('../../../lib/api')
 
 /* global describe it */
@@ -16,32 +17,31 @@ describe('generic.string.validateSchema', () => {
     assert.doesNotThrow(() => jsv.validateSchema(schema))
   })
 
-  it('should successfully validate schema with default value', () => {
+  it('should successfully validate schema with default value', (done) => {
     const schema = {
       type: 'string',
       default: 'a default value'
     }
 
-    assert.doesNotThrow(() => jsv.validateSchema(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate schema with default null value', () => {
+  it('should successfully validate schema with default null value', (done) => {
     const schema = {
       type: 'string',
       default: null
     }
 
-    assert.doesNotThrow(() => jsv.validateSchema(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate schema with non object default value', () => {
+  it('should successfully validate schema with a non valid default value', (done) => {
     const schema = {
       type: 'string',
       default: 7
     }
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'type', done)
   })
 
   it('should successfully validate schema with maxLength', () => {
@@ -147,44 +147,41 @@ describe('generic.string.validateSchema', () => {
 describe('generic.string.validate', () => {
   const jsv = new JsonSchemav()
   const schema = { type: 'string', default: 'abc' }
-  const instance = jsv.compile(schema)
 
-  it('should successfully validate a string', () => {
-    [ null, 'xyz', 'Déjà vue', '', '42', undefined ].forEach((data) => {
-      const report = instance.validate(data)
+  it('should successfully validate a string', (done) => {
+    const values = [ null, 'xyz', 'Déjà vue', '', '42', undefined ]
 
-      data = JSON.stringify(data)
-
-      assert.equal(report, true, `should have no error with ${data}`)
-    })
+    should.validate.with.each(values, jsv, schema, done)
   })
 
-  it('should successfully validate a non string', () => {
-    [ true, false, [], () => {}, 123, {} ].forEach((data) => {
-      const reports = instance.validate(data)
+  it('should successfully validate a non string', (done) => {
+    const values = [ true, false, [], () => {}, 123, {} ]
 
-      data = JSON.stringify(data)
-
-      assert.equal(reports[0].keyword, 'type', `should have no error with ${data}`)
-    })
+    should.throw.with.each(values, jsv, schema, done)
   })
 })
 
 describe('generic.string.keywords.default', () => {
   const jsv = new JsonSchemav()
+  const throws = (format, err) => new Error(`should successfully validate with 'format: ${format}'. Recieved ${JSON.stringify(err.errors)}`)
+  const formats = ['date', 'time', 'timestamp', 'date-time']
 
-  it('should successfully validate schema with default value now()', () => {
-    ['date', 'time', 'timestamp', 'date-time'].forEach((format) => {
+  it('should successfully validate schema with default value now()', (done) => {
+    formats.forEach((format) => {
       const schema = { type: 'string', format: format, default: 'now()' }
-      const instance = jsv.compile(schema)
-      const report = instance.validate(undefined)
 
-      assert.equal(report, true, `should successfully validate with ${format}`)
+      jsv.compile(schema).then((instance) => {
+        return instance.validate(undefined)
+      }).catch((err) => {
+        done(throws(format, err))
+      })
     })
+
+    done()
   })
 
-  it('should successfully validate schema with missing embedded field', () => {
-    ['date', 'time', 'timestamp', 'date-time'].forEach((format) => {
+  it('should successfully validate schema with missing embedded field', (done) => {
+    formats.forEach((format) => {
       const schema = {
         type: 'object',
         properties: {
@@ -196,16 +193,20 @@ describe('generic.string.keywords.default', () => {
         }
       }
 
-      const instance = jsv.compile(schema)
-      const report = instance.validate({})
-
-      assert.equal(report, true, `should successfully validate with ${format}`)
+      jsv.compile(schema).then((instance) => {
+        return instance.validate({})
+      }).catch((err) => {
+        done(throws(format, err))
+      })
     })
+
+    done()
   })
 })
 
 describe('generic.string.keywords.enum', () => {
   const jsv = new JsonSchemav()
+//   const throws = (value, err) => new Error(`should successfully validate with 'default: ${value}'. Recieved ${JSON.stringify(err.errors)}`)
 
   it('should successfully validate schema with enum', () => {
     const schema = {
@@ -245,20 +246,17 @@ describe('generic.string.keywords.enum', () => {
       default: 'b'
     }
 
-    assert.doesNotThrow(() => {
-      jsv.validateSchema(schema)
-    })
+    return jsv.compile(schema)
   })
 
-  it('should successfully validate schema with unknow default value in enum', () => {
+  it('should successfully validate schema with unknow default value in enum', (done) => {
     const schema = {
       type: 'string',
       enum: [ 'a', 'b', 'c' ],
       default: 'd'
     }
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value "d"/)
+    should.throw.with.defaultValue(jsv, schema, 'enum', done)
   })
 })
 
@@ -272,8 +270,9 @@ describe('generic.string.keywords.format', () => {
       default: 'xyz'
     }
 
-    assert.throws(() =>
-      jsv.compile(schema), /Unknow format/)
+    assert.throws(() => {
+      jsv.compile(schema)
+    }, /Unknow format 'non-existing'/)
   })
 })
 
@@ -287,18 +286,17 @@ describe('generic.string.keywords.format.date-time', () => {
       default: JSON.parse(JSON.stringify(new Date()))
     }
 
-    assert.doesNotThrow(() => jsv.compile(schema))
+    return jsv.compile(schema)
   })
 
-  it('should successfully validate with a bad date-time value', () => {
+  it('should successfully validate with a bad date-time value', (done) => {
     const schema = {
       type: 'string',
       format: 'date-time',
       default: '2017-05-08T17:20:42.576Y'
     }
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'format', done)
   })
 })
 
@@ -312,14 +310,13 @@ describe('generic.string.keywords.format.email', () => {
   it('should successfully validate with an email', () => {
     schema.default = 'demo@example.com'
 
-    assert.doesNotThrow(() => jsv.validateSchema(schema))
+    return jsv.compile(schema)
   })
 
-  it('should successfully validate with a non valid email', () => {
-    schema.default = 'demo @example.com'
+  it('should successfully validate with a non valid email', (done) => {
+    schema.default = 'invalid email example.com'
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'format', done)
   })
 })
 
@@ -330,17 +327,16 @@ describe('generic.string.keywords.format.hostname', () => {
     format: 'hostname'
   }
 
-  it('should successfully validate with a hostname', () => {
+  it('should successfully validate with a hostname', (done) => {
     schema.default = 'example.com'
 
-    assert.doesNotThrow(() => jsv.validateSchema(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate with a non valid hostname', () => {
+  it('should successfully validate with a non valid hostname', (done) => {
     schema.default = 'example/com'
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'format', done)
   })
 })
 
@@ -351,17 +347,16 @@ describe('generic.string.keywords.format.ipv4', () => {
     format: 'ipv4'
   }
 
-  it('should successfully validate with a ipv4', () => {
+  it('should successfully validate with a ipv4', (done) => {
     schema.default = '127.0.0.1'
 
-    assert.doesNotThrow(() => jsv.validateSchema(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate with a non valid ipv4', () => {
+  it('should successfully validate with a non valid ipv4', (done) => {
     schema.default = '256.0.0.0'
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'format', done)
   })
 })
 
@@ -372,17 +367,16 @@ describe('generic.string.keywords.format.ipv6', () => {
     format: 'ipv6'
   }
 
-  it('should successfully validate with a ipv6', () => {
+  it('should successfully validate with a ipv6', (done) => {
     schema.default = '0:0:0:0:0:ffff:7f00:1'
 
-    assert.doesNotThrow(() => jsv.validateSchema(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate with a non valid ipv6', () => {
+  it('should successfully validate with a non valid ipv6', (done) => {
     schema.default = 'g:0:0:0:0:ffff:ff00:0'
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'format', done)
   })
 })
 
@@ -393,17 +387,16 @@ describe('generic.string.keywords.format.uri', () => {
     format: 'uri'
   }
 
-  it('should successfully validate with a uri', () => {
+  it('should successfully validate with a uri', (done) => {
     schema.default = 'xyz://google.com:8888'
 
-    assert.doesNotThrow(() => jsv.validateSchema(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate with a non valid uri', () => {
+  it('should successfully validate with a non valid uri', (done) => {
     schema.default = 'pamela.98'
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'format', done)
   })
 })
 
@@ -414,23 +407,22 @@ describe('generic.string.keywords.maxLength', () => {
     default: 'xyz'
   }
 
-  it('should successfully validate exacting size', () => {
+  it('should successfully validate exacting size', (done) => {
     schema.maxLength = schema.default.length
 
-    assert.doesNotThrow(() => jsv.compile(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate with exceeding size', () => {
+  it('should successfully validate with exceeding size', (done) => {
     schema.maxLength = schema.default.length - 1
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'maxLength', done)
   })
 
-  it('should successfully validate with a null default value', () => {
+  it('should successfully validate with a null default value', (done) => {
     schema.default = null
 
-    assert.doesNotThrow(() => jsv.compile(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 })
 
@@ -441,23 +433,22 @@ describe('generic.string.keywords.minLength', () => {
     default: 'xyz'
   }
 
-  it('should successfully validate with exacting size', () => {
+  it('should successfully validate with exacting size', (done) => {
     schema.minLength = schema.default.length
 
-    assert.doesNotThrow(() => jsv.compile(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate with fewer character', () => {
+  it('should successfully validate with fewer character', (done) => {
     schema.default = schema.default.substring(1)
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'minLength', done)
   })
 
-  it('should successfully validate with a null default value', () => {
+  it('should successfully validate with a null default value', (done) => {
     schema.default = null
 
-    assert.doesNotThrow(() => jsv.compile(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 })
 
@@ -468,26 +459,23 @@ describe('generic.string.keywords.pattern', () => {
     pattern: '^(\\([0-9]{3}\\))?[0-9]{3}-[0-9]{4}$'
   }
 
-  it('should successfully validate', () => {
+  it('should successfully validate', (done) => {
     schema.default = '555-1212'
-    assert.doesNotThrow(() =>
-      jsv.validateSchema(schema), `should successfully validate ${schema.default}`)
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
     schema.default = '(888)555-1212'
-    assert.doesNotThrow(() =>
-      jsv.validateSchema(schema), `should successfully validate ${schema.default}`)
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
     schema.default = '(888)555-1212 ext. 532'
-    assert.throws(() => jsv.compile(schema),
-      /Invalid default value/, `should successfully validate ${schema.default}`)
+    should.throw.with.defaultValue(jsv, schema, 'pattern', done, false)
 
     schema.default = '(800)FLOWERS'
-    assert.throws(() => jsv.compile(schema),
-      /Invalid default value/, `should successfully validate ${schema.default}`)
+    should.throw.with.defaultValue(jsv, schema, 'pattern', done, false)
 
     schema.default = null
-    assert.throws(() => jsv.compile(schema),
-      /Invalid default value/, `should successfully validate ${schema.default}`)
+    should.throw.with.defaultValue(jsv, schema, 'pattern', done, false)
+
+    done()
   })
 })
 
@@ -497,35 +485,29 @@ describe('generic.string.keywords.required', () => {
     type: 'string',
     required: true
   }
-  const instance = jsv.compile(schema)
 
-  it('should successfully validate a null value', () => {
-    const report = instance.validate(null)
-
-    assert.equal(report.length, 1, 'should have only one error item')
-    assert.equal(report[0].keyword, 'required', 'should have `required` keyword error')
+  it('should successfully validate a null value', (done) => {
+    schema.default = null
+    should.throw.with.defaultValue(jsv, schema, 'required', done)
   })
 
-  it('should successfully validate an empty string', () => {
-    const report = instance.validate('')
-
-    assert.equal(report, true, 'should have no error item')
+  it('should successfully validate an empty string', (done) => {
+    schema.default = ''
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate a non empty string', () => {
-    const report = instance.validate('-')
-
-    assert.equal(report, true, 'should have no error item')
+  it('should successfully validate a non empty string', (done) => {
+    schema.default = '-'
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate an empty value with required == false', () => {
+  it('should successfully validate an empty value with required == false', (done) => {
     const schema = {
       type: 'string',
       required: false
     }
-    const instance = jsv.compile(schema)
-    const report = instance.validate('')
 
-    assert.equal(report, true, 'should have no error item')
+    schema.default = ''
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 })

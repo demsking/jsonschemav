@@ -1,6 +1,6 @@
 {
   "name": "jsonschemav",
-  "version": "0.6.1",
+  "version": "1.0.0",
   "description": "A simple JSON Schema Validation",
   "main": "lib/api.js",
   "scripts": {

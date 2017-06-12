@@ -1,6 +1,7 @@
 'use strict'
 
 const assert = require('assert')
+const should = require('../..').should
 const JsonSchemav = require('../../../lib/api')
 
 /* global describe it */
@@ -24,9 +25,7 @@ describe('generic.numeric.validateSchema', () => {
       default: 12
     }
 
-    assert.doesNotThrow(() => {
-      jsv.validateSchema(schema)
-    })
+    return jsv.compile(schema)
   })
 
   it('should successfully validate schema with default float value', () => {
@@ -35,19 +34,16 @@ describe('generic.numeric.validateSchema', () => {
       default: 12.01
     }
 
-    assert.doesNotThrow(() => {
-      jsv.validateSchema(schema)
-    })
+    return jsv.compile(schema)
   })
 
-  it('should successfully validate schema with non numeric default value', () => {
+  it('should successfully validate schema with non numeric default value', (done) => {
     const schema = {
       type: 'numeric',
       default: '7'
     }
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'type', done)
   })
 
   it('should successfully validate schema with multipleOf', () => {
@@ -122,101 +118,88 @@ describe('generic.numeric.validateSchema', () => {
 describe('generic.numeric.compile', () => {
   const jsv = new JsonSchemav()
 
-  it('should successfully compile schema with an undefined exclusiveMaximum value', () => {
-    const instance = jsv.compile({
-      type: 'numeric', exclusiveMaximum: undefined })
+  it('should successfully compile schema with an undefined exclusiveMaximum value', (done) => {
+    jsv.compile({ type: 'numeric', exclusiveMaximum: undefined })
+      .then((instance) => {
+        assert.ok(instance.schema.hasOwnProperty('exclusiveMaximum'), 'should have the exclusiveMaximum keyword')
+        assert.equal(instance.schema.exclusiveMaximum, false, 'should have the exclusiveMaximum keyword with boolean value false')
+      }).catch(done)
 
-    assert.ok(instance.schema.hasOwnProperty('exclusiveMaximum'), 'should have the exclusiveMaximum keyword')
-    assert.equal(instance.schema.exclusiveMaximum, false, 'should have the exclusiveMaximum keyword with boolean value false')
+    done()
   })
 
   it('should successfully compile schema with an undefined exclusiveMinimum value', () => {
-    const instance = jsv.compile({
-      type: 'numeric', exclusiveMinimum: undefined })
-
-    assert.ok(instance.schema.hasOwnProperty('exclusiveMinimum'), 'should have the exclusiveMinimum keyword')
-    assert.equal(instance.schema.exclusiveMinimum, false, 'should have the exclusiveMinimum keyword with boolean value false')
+    jsv.compile({ type: 'numeric', exclusiveMinimum: undefined }).then((instance) => {
+      assert.ok(instance.schema.hasOwnProperty('exclusiveMinimum'), 'should have the exclusiveMinimum keyword')
+      assert.equal(instance.schema.exclusiveMinimum, false, 'should have the exclusiveMinimum keyword with boolean value false')
+    })
   })
 })
 
 describe('generic.numeric.validate', () => {
   const jsv = new JsonSchemav()
   const schema = { type: 'numeric', default: 12 }
-  const instance = jsv.compile(schema)
 
-  it('should successfully validate a numeric', () => {
-    [ 12, 12.01, -12, undefined ].forEach((data) => {
-      const report = instance.validate(data)
+  it('should successfully validate a numeric', (done) => {
+    const values = [ 12, 12.01, -12, undefined ]
 
-      data = JSON.stringify(data)
-
-      assert.ok(report, `should have no error with ${data}`)
-    })
+    should.validate.with.each(values, jsv, schema, done)
   })
 
-  it('should successfully validate a non numeric', () => {
-    [ true, false, [], () => {}, 'abc', {}, null ].forEach((data) => {
-      const reports = instance.validate(data)
+  it('should successfully validate a non numeric', (done) => {
+    const values = [ true, false, [], () => {}, 'abc', {}, null ]
 
-      data = JSON.stringify(data)
-
-      assert.equal(reports[0].keyword, 'type', `should have no error with ${data}`)
-    })
+    should.throw.with.each(values, jsv, schema, done)
   })
 })
 
 describe('generic.integer.validate', () => {
   const jsv = new JsonSchemav()
-  const schema = { type: 'integer', default: 12 }
-  const instance = jsv.compile(schema)
+  const schema = { type: 'integer' }
 
-  it('should successfully validate data', () => {
-    const report1 = instance.validate(12)
-    const report2 = instance.validate(12.01)
-    const report3 = instance.validate(-12)
-    const report4 = instance.validate(undefined)
-    const report5 = instance.validate('42')
+  it('should successfully validate data', (done) => {
+    schema.default = 12
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    assert.ok(report1, 'should have no error with `12`')
-    assert.equal(report2[0].keyword, 'type', 'should have no error with `12.02`')
-    assert.ok(report3, 'should have no error with `-12` using default value')
-    assert.ok(report4, 'should have no error with undefined value using default value')
-    assert.equal(report5[0].keyword, 'type', 'should have no error with undefined value using default value')
+    schema.default = 12.01
+    should.throw.with.defaultValue(jsv, schema, 'type', done, false)
+
+    schema.default = -12
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    schema.default = undefined
+    should.throw.with.defaultValue(jsv, schema, 'type', done, false)
+
+    schema.default = '42'
+    should.throw.with.defaultValue(jsv, schema, 'type', done, false)
+
+    done()
   })
 })
 
 describe('generic.numeric.keywords.required', () => {
   const jsv = new JsonSchemav()
+  const schema = {
+    type: 'object',
+    properties: {
+      day: { type: 'numeric' },
+      month: { type: 'numeric' },
+      year: { type: 'numeric', default: 2010 }
+    },
+    required: [ 'day', 'month' ]
+  }
 
-  it('should successfully validate with generic.object.required', () => {
-    const schema = {
-      type: 'object',
-      properties: {
-        day: { type: 'numeric' },
-        month: { type: 'numeric' }
-      },
-      required: [ 'day' ]
-    }
-    const instance = jsv.compile(schema)
-    const report = instance.validate({ day: 12 })
+  it('should successfully validate with generic.object.required', (done) => {
+    schema.default = { day: 12, month: 1 }
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    assert.equal(report, true)
-  })
+    schema.default = { day: 12, year: 1955 }
+    should.throw.with.defaultValue(jsv, schema, 'required', done, false)
 
-  it('should successfully validate an empty value with required == true', () => {
-    const schema = { type: 'numeric', required: true }
-    const instance = jsv.compile(schema)
-    const report = instance.validate(12)
+    schema.default = { month: 12 }
+    should.throw.with.defaultValue(jsv, schema, 'required', done, false)
 
-    assert.equal(report, true)
-  })
-
-  it('should successfully validate an empty value with required == false', () => {
-    const schema = { type: 'numeric', required: false }
-    const instance = jsv.compile(schema)
-    const report = instance.validate(-12)
-
-    assert.equal(report, true)
+    done()
   })
 })
 
@@ -261,20 +244,17 @@ describe('generic.numeric.keywords.enum', () => {
       default: 2
     }
 
-    assert.doesNotThrow(() => {
-      jsv.validateSchema(schema)
-    })
+    return jsv.compile(schema)
   })
 
-  it('should successfully validate schema with unknow default value in enum', () => {
+  it('should successfully validate schema with unknow default value in enum', (done) => {
     const schema = {
       type: 'numeric',
       enum: [ 1, 2, 3 ],
       default: 4
     }
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value 4/)
+    should.throw.with.defaultValue(jsv, schema, 'enum', done)
   })
 })
 
@@ -285,41 +265,37 @@ describe('generic.numeric.keywords.maximum', () => {
     default: 3
   }
 
-  it('should successfully validate maximum number', () => {
+  it('should successfully validate maximum number', (done) => {
     schema.maximum = schema.default
 
-    assert.doesNotThrow(() => jsv.compile(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate with exclusiveMaximum', () => {
+  it('should successfully validate with exclusiveMaximum', (done) => {
     schema.exclusiveMaximum = true
     schema.maximum = schema.default
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'maximum', done)
   })
 
-  it('should successfully validate with a lower number', () => {
+  it('should successfully validate with a lower number', (done) => {
     schema.maximum = schema.default - 1
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'maximum', done)
   })
 
-  it('should successfully validate with a larger number', () => {
+  it('should successfully validate with a larger number', (done) => {
     schema.maximum = 0
     schema.default = 1
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'maximum', done)
   })
 
-  it('should successfully validate with exclusiveMaximum', () => {
+  it('should successfully validate with exclusiveMaximum', (done) => {
     schema.exclusiveMaximum = true
     schema.maximum = schema.default
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'maximum', done)
   })
 })
 
@@ -330,33 +306,31 @@ describe('generic.numeric.keywords.minimum', () => {
     default: 3
   }
 
-  it('should successfully validate with minimum number', () => {
+  it('should successfully validate with minimum number', (done) => {
     schema.minimum = schema.default
 
-    assert.doesNotThrow(() => jsv.compile(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate with a larger number', () => {
+  it('should successfully validate with a larger number', (done) => {
     schema.minimum = schema.default
     schema.default = schema.default + 1
 
-    assert.doesNotThrow(() => jsv.compile(schema))
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate with a lower number', () => {
+  it('should successfully validate with a lower number', (done) => {
     schema.minimum = 0
     schema.default = -1
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'minimum', done)
   })
 
-  it('should successfully validate with exclusiveMinimum', () => {
+  it('should successfully validate with exclusiveMinimum', (done) => {
     schema.exclusiveMinimum = true
     schema.minimum = schema.default
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'minimum', done)
   })
 })
 
@@ -368,30 +342,28 @@ describe('generic.numeric.keywords.multipleOf', () => {
     default: 9
   }
 
-  it('should successfully validate with a default value', () => {
-    assert.doesNotThrow(() => jsv.compile(schema))
+  it('should successfully validate with a default value', (done) => {
+    should.validate.with.defaultValue(jsv, schema, done)
   })
 
-  it('should successfully validate with a non valid default value', () => {
+  it('should successfully validate with a non valid default value', (done) => {
     schema.multipleOf = 2
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'multipleOf', done)
   })
 
-  it('should successfully validate with a non valid default value', () => {
-    const data1 = 42
-    const data2 = 42.0
-    const data3 = 3.14156926
+  it('should successfully validate with a non valid default value', (done) => {
+    schema.multipleOf = 1.0
 
-    const instance = jsv.compile({ type: 'number', multipleOf: 1.0 })
+    schema.default = 42
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    const result1 = instance.validate(data1)
-    const result2 = instance.validate(data2)
-    const result3 = instance.validate(data3)
+    schema.default = 42.0
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    assert.ok(result1, `should successfully validate ${JSON.stringify(data1)}`)
-    assert.ok(result2, `should successfully validate ${JSON.stringify(data2)}`)
-    assert.equal(result3[0].keyword, 'multipleOf', `should successfully validate ${JSON.stringify(data3)}`)
+    schema.default = 3.14156926
+    should.throw.with.defaultValue(jsv, schema, 'multipleOf', done, false)
+
+    done()
   })
 })

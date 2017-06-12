@@ -1,6 +1,7 @@
 'use strict'
 
 const assert = require('assert')
+const should = require('../..').should
 const JsonSchemav = require('../../../lib/api')
 
 /* global describe it */
@@ -177,77 +178,75 @@ describe('generic.array.validateSchema', () => {
 
 describe('generic.array.compile', () => {
   const jsv = new JsonSchemav()
-  const schema = {
-    type: 'array'
-  }
 
   it('should successfully compile schema with missing uniqueItems', () => {
-    const instance = jsv.compile(schema)
+    const schema = {
+      type: 'array'
+    }
 
-    assert.ok(instance.schema.hasOwnProperty('uniqueItems'),
-      'should have the uniqueItems keyword')
-    assert.equal(instance.schema.uniqueItems, false,
-      'should have the uniqueItems keyword with boolean value false')
+    return jsv.compile(schema).then((instance) => {
+      assert.ok(instance.schema.hasOwnProperty('uniqueItems'),
+        'should have the uniqueItems keyword')
+      assert.equal(instance.schema.uniqueItems, false,
+        'should have the uniqueItems keyword with boolean value false')
+    })
   })
 
   it('should successfully compile schema with default value', () => {
-    schema.items = { type: 'string' }
-    schema.default = [ 'a' ]
+    const schema = {
+      type: 'array',
+      items: { type: 'string' },
+      default: [ 'a' ]
+    }
 
-    const instance = jsv.compile(schema)
-
-    assert.ok(instance.schema.hasOwnProperty('uniqueItems'),
-      'should have the uniqueItems keyword')
-    assert.equal(instance.schema.uniqueItems, false,
-      'should have the uniqueItems keyword with boolean value false')
+    return jsv.compile(schema).then((instance) => {
+      assert.ok(instance.schema.hasOwnProperty('uniqueItems'),
+        'should have the uniqueItems keyword')
+      assert.equal(instance.schema.uniqueItems, false,
+        'should have the uniqueItems keyword with boolean value false')
+    })
   })
 })
 
 describe('generic.array.validate', () => {
   const jsv = new JsonSchemav()
 
-  it('should successfully validate with no items entry', () => {
+  it('should successfully validate with no items entry', (done) => {
     const schema = {
       type: 'array'
     }
-    const instance = jsv.compile(schema)
 
-    const data1 = [1, 2, 3, 4, 5]
-    const data2 = [3, 'different', { types: 'of values' }]
-    const data3 = { Not: 'an array' }
+    schema.default = [1, 2, 3, 4, 5]
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    const report1 = instance.validate(data1)
-    const report2 = instance.validate(data2)
-    const report3 = instance.validate(data3)
+    schema.default = [3, 'different', { types: 'of values' }]
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    assert.equal(report1, true, `should have no error with ${JSON.stringify(data1)}`)
-    assert.equal(report2, true, `should have no error with ${JSON.stringify(data2)}`)
-    assert.equal(Array.isArray(report3), true, `should have an error with ${JSON.stringify(data3)}`)
-    assert.equal(report3[0].keyword, 'type', `should have a type error with ${JSON.stringify(data3)}`)
+    schema.default = { Not: 'an array' }
+    should.throw.with.defaultValue(jsv, schema, 'type', done, false)
+
+    done()
   })
 
-  it('should successfully validate list', () => {
+  it('should successfully validate list', (done) => {
     const schema = {
       type: 'array',
       items: { type: 'number' }
     }
-    const instance = jsv.compile(schema)
 
-    const data1 = [1, 2, 3, 4, 5]
-    const data2 = [1, 2, '3', 4, 5]
-    const data3 = []
+    schema.default = [1, 2, 3, 4, 5]
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    const report1 = instance.validate(data1)
-    const report2 = instance.validate(data2)
-    const report3 = instance.validate(data3)
+    schema.default = [1, 2, '3', 4, 5]
+    should.throw.with.defaultValue(jsv, schema, 'items', done, false)
 
-    assert.equal(report1, true, `should have no error with ${JSON.stringify(data1)}`)
-    assert.equal(Array.isArray(report2), true, `should have an error with ${JSON.stringify(data2)}`)
-    assert.equal(report2[0].errors[0].errors[0].keyword, 'type', `should have a type error with ${JSON.stringify(data3)}`)
-    assert.equal(report3, true, `should have no error with ${JSON.stringify(data2)}`)
+    schema.default = []
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    done()
   })
 
-  it('should successfully validate tuple', () => {
+  it('should successfully validate tuple', (done) => {
     const schema = {
       type: 'array',
       items: [
@@ -257,30 +256,26 @@ describe('generic.array.validate', () => {
         { type: 'string', enum: ['NW', 'NE', 'SW', 'SE'] }
       ]
     }
-    const instance = jsv.compile(schema)
 
-    const data1 = [1600, 'Pennsylvania', 'Avenue', 'NW']
-    const data2 = [24, 'Sussex', 'Drive']
-    const data3 = ['Palais de l\'Élysée']
-    const data4 = [10, 'Downing', 'Street']
-    const data5 = [1600, 'Pennsylvania', 'Avenue', 'NW', 'Washington']
+    schema.default = [1600, 'Pennsylvania', 'Avenue', 'NW']
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    const report1 = instance.validate(data1)
-    const report2 = instance.validate(data2)
-    const report3 = instance.validate(data3)
-    const report4 = instance.validate(data4)
-    const report5 = instance.validate(data5)
+    schema.default = [24, 'Sussex', 'Drive']
+    should.throw.with.defaultValue(jsv, schema, 'items', done, false)
 
-    assert.equal(report1, true, `should have no error with ${JSON.stringify(data1)}`)
-    assert.equal(Array.isArray(report2), true, `should have an error with ${JSON.stringify(data2)}`)
-    assert.equal(report2[0].errors[0].errors[0].keyword, 'enum', `should have an enum error with ${JSON.stringify(data2)}`)
-    assert.equal(Array.isArray(report3), true, `should have an error with ${JSON.stringify(data3)}`)
-    assert.equal(report3[0].errors[0].errors[0].keyword, 'type', `should have a type error with ${JSON.stringify(data3)}`)
-    assert.equal(report4, true, `should have no error with ${JSON.stringify(data4)}`)
-    assert.equal(report5, true, `should have no error with ${JSON.stringify(data5)}`)
+    schema.default = ['Palais de l\'Élysée']
+    should.throw.with.defaultValue(jsv, schema, 'items', done, false)
+
+    schema.default = [10, 'Downing', 'Street']
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    schema.default = [1600, 'Pennsylvania', 'Avenue', 'NW', 'Washington']
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    done()
   })
 
-  it('should successfully validate tuple with additionalItems = true', () => {
+  it('should successfully validate tuple with additionalItems = true', (done) => {
     const schema = {
       type: 'array',
       items: [
@@ -291,37 +286,26 @@ describe('generic.array.validate', () => {
       ],
       additionalItems: true
     }
-    const instance = jsv.compile(schema)
 
-    const data1 = [1600, 'Pennsylvania', 'Avenue', 'NW']
-    const data2 = [24, 'Sussex', 'Drive']
-    const data3 = ['Palais de l\'Élysée']
-    const data4 = [10, 'Downing', 'Street']
-    const data5 = [1600, 'Pennsylvania', 'Avenue', 'NW', 'Washington']
+    schema.default = [1600, 'Pennsylvania', 'Avenue', 'NW']
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    const report1 = instance.validate(data1)
-    const report2 = instance.validate(data2)
-    const report3 = instance.validate(data3)
-    const report4 = instance.validate(data4)
-    const report5 = instance.validate(data5)
+    schema.default = [24, 'Sussex', 'Drive']
+    should.throw.with.defaultValue(jsv, schema, 'items', done, false)
 
-    assert.equal(report1, true,
-      `should have no error with ${JSON.stringify(data1)}`)
-    assert.equal(Array.isArray(report2), true,
-      `should have an error with ${JSON.stringify(data2)}`)
-    assert.equal(report2[0].errors[0].errors[0].keyword, 'enum',
-      `should have an enum error with ${JSON.stringify(data2)}`)
-    assert.equal(Array.isArray(report3), true,
-      `should have an error with ${JSON.stringify(data3)}`)
-    assert.equal(report3[0].errors[0].errors[0].keyword, 'type',
-      `should have a type error with ${JSON.stringify(data3)}`)
-    assert.equal(report4, true,
-      `should have no error with ${JSON.stringify(data4)}`)
-    assert.equal(report5, true,
-      `should have no error with ${JSON.stringify(data5)}`)
+    schema.default = ['Palais de l\'Élysée']
+    should.throw.with.defaultValue(jsv, schema, 'items', done, false)
+
+    schema.default = [10, 'Downing', 'Street']
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    schema.default = [1600, 'Pennsylvania', 'Avenue', 'NW', 'Washington']
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    done()
   })
 
-  it('should successfully validate tuple with additionalItems = false', () => {
+  it('should successfully validate tuple with additionalItems = false', (done) => {
     const schema = {
       type: 'array',
       items: [
@@ -332,80 +316,56 @@ describe('generic.array.validate', () => {
       ],
       additionalItems: false
     }
-    const instance = jsv.compile(schema)
 
-    const data1 = [1600, 'Pennsylvania', 'Avenue', 'NW']
-    const data2 = [1600, 'Pennsylvania', 'Avenue']
-    const data3 = [1600, 'Pennsylvania', 'Avenue', 'NW', 'Washington']
+    schema.default = [1600, 'Pennsylvania', 'Avenue', 'NW']
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    const report1 = instance.validate(data1)
-    const report2 = instance.validate(data2)
-    const report3 = instance.validate(data3)
+    schema.default = [1600, 'Pennsylvania', 'Avenue']
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    assert.equal(report1, true,
-      `should have no error with ${JSON.stringify(data1)}`)
-    assert.equal(report2, true,
-      `should have no error with ${JSON.stringify(data2)}`)
-    assert.equal(Array.isArray(report3), true,
-      `should have an error with ${JSON.stringify(data3)}`)
-    assert.equal(report3[0].error, 'size',
-      `should have a size error with ${JSON.stringify(data3)}`)
+    schema.default = [1600, 'Pennsylvania', 'Avenue', 'NW', 'Washington']
+    should.throw.with.defaultValue(jsv, schema, 'items', done, false)
+
+    done()
   })
 })
 
 describe('generic.array.keywords', () => {
   const jsv = new JsonSchemav()
 
-  it('should successfully validate data with minItems & maxItems', () => {
+  it('should successfully validate data with minItems & maxItems', (done) => {
     const schema = { type: 'array', minItems: 2, maxItems: 3 }
-    const instance = jsv.compile(schema)
 
-    const data1 = []
-    const data2 = [1]
-    const data3 = [1, 2]
-    const data4 = [1, 2, 3]
-    const data5 = [1, 2, 3, 4]
+    schema.default = []
+    should.throw.with.defaultValue(jsv, schema, 'minItems', done, false)
 
-    const report1 = instance.validate(data1)
-    const report2 = instance.validate(data2)
-    const report3 = instance.validate(data3)
-    const report4 = instance.validate(data4)
-    const report5 = instance.validate(data5)
+    schema.default = [1]
+    should.throw.with.defaultValue(jsv, schema, 'minItems', done, false)
 
-    assert.equal(report1 instanceof Array, true,
-      'should successfully validate with not enough items')
-    assert.equal(report1[0].keyword, 'minItems',
-      'report1 should have the minItems keyword')
-    assert.equal(report2 instanceof Array, true,
-      'should successfully validate with not enough items')
-    assert.equal(report2[0].keyword, 'minItems',
-      'report2 should have the minItems keyword')
-    assert.equal(report3, true, `should successfully validate ${data3}`)
-    assert.equal(report4, true, `should successfully validate ${data4}`)
-    assert.ok(report2 instanceof Array,
-      'should successfully validate with too many items')
-    assert.equal(report2[0].keyword, 'minItems',
-      'report5 should have the maxItems keyword')
-    assert.ok(report5 instanceof Array, `should successfully validate ${data5}`)
+    schema.default = [1, 2]
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    schema.default = [1, 2, 3]
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    schema.default = [1, 2, 3, 4]
+    should.throw.with.defaultValue(jsv, schema, 'maxItems', done, false)
+
+    done()
   })
 
-  it('should successfully validate data with uniqueItems = true', () => {
+  it('should successfully validate data with uniqueItems = true', (done) => {
     const schema = { type: 'array', uniqueItems: true }
-    const instance = jsv.compile(schema)
 
-    const data1 = [1, 2, 3, 4, 5]
-    const data2 = [1, 2, 3, 3, 4]
-    const data3 = []
+    schema.default = [1, 2, 3, 4, 5]
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    const report1 = instance.validate(data1)
-    const report2 = instance.validate(data2)
-    const report3 = instance.validate(data3)
+    schema.default = [1, 2, 3, 3, 4]
+    should.throw.with.defaultValue(jsv, schema, 'uniqueItems', done, false)
 
-    assert.equal(report1, true, `should successfully validate ${data1}`)
-    assert.ok(report2 instanceof Array,
-      'should successfully validate with non unique items')
-    assert.equal(report2[0].keyword,
-      'uniqueItems', 'report2 should have the uniqueItems keyword')
-    assert.equal(report3, true, `should successfully validate ${data3}`)
+    schema.default = []
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    done()
   })
 })

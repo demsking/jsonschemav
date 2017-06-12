@@ -114,11 +114,17 @@ Compile a schema
 ```javascript
 const jsv = new JsonSchemav()
 const schema = { type: 'string' }
-const instance = jsv.compile(schema)
 const data = 'Hello, World!'
-const report = instance.validate(data)
 
-console.log(report) // true
+jsv.compile(schema).then((instance) => {
+  instance.validate(data)
+    .then((parsedData) => {
+      // use `parsedData` instead `data`
+    })
+    .catch((err) => {
+      // err.errors is a list of parsing error
+    })
+})
 ```
 
 Returns **[object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Returns an interface with the `validate` member

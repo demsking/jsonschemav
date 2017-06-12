@@ -1,6 +1,7 @@
 'use strict'
 
 const assert = require('assert')
+const should = require('../..').should
 const JsonSchemav = require('../../../lib/api')
 
 /* global describe it */
@@ -125,11 +126,6 @@ describe('generic.object.validateSchema', () => {
       schema.properties = { name: null }
       jsv.validateSchema(schema)
     }, /A property entry cannot be null/, 'should validate with a null property entry')
-
-    assert.throws(() => {
-      schema.properties = { name: { type: 'string', default: 123 } }
-      jsv.compile(schema)
-    }, /Invalid default value 123/, 'should validate with a non valid JSON Schema property entry')
 
     assert.doesNotThrow(() => {
       schema.properties = { name: { type: 'string', default: 'abc' } }
@@ -343,18 +339,17 @@ describe('generic.object.validateSchema', () => {
       default: { name: 'Sébastien' }
     }
 
-    assert.doesNotThrow(() => jsv.validateSchema(schema))
+    return jsv.compile(schema)
   })
 
-  it('should successfully validate schema with non object default value', () => {
+  it('should successfully validate schema with non object default value', (done) => {
     const schema = {
       type: 'object',
       properties: { name: { type: 'string' } },
       default: { name: 123 }
     }
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'properties', done)
   })
 })
 
@@ -364,26 +359,17 @@ describe('generic.object.validate', () => {
     type: 'object',
     properties: { name: { type: 'string' } },
     default: { name: 'Sébastien' } }
-  const instance = jsv.compile(schema)
 
-  it('should successfully validate a object', () => {
-    [ { name: null }, { name: 'KDE Plasma' }, undefined ].forEach((data) => {
-      const report = instance.validate(data)
+  it('should successfully validate a object', (done) => {
+    const values = [ { name: null }, { name: 'KDE Plasma' }, undefined ]
 
-      data = JSON.stringify(data)
-
-      assert.equal(report, true, `should have no error with ${data}`)
-    })
+    should.validate.with.each(values, jsv, schema, done)
   })
 
-  it('should successfully validate an invalid object', () => {
-    [ true, false, [], () => {}, 'abc', 123, null ].forEach((data) => {
-      const reports = instance.validate(data)
+  it('should successfully validate an invalid object', (done) => {
+    const values = [ true, false, [], () => {}, 'abc', 123, null ]
 
-      data = JSON.stringify(data)
-
-      assert.equal(reports[0].keyword, 'type', `should have no error with ${data}`)
-    })
+    should.throw.with.each(values, jsv, schema, done)
   })
 })
 
@@ -394,56 +380,51 @@ describe('generic.object.keywords.required', () => {
     properties: { name: { type: 'string' } },
     required: [ 'name' ]
   }
-  const instance = jsv.compile(schema)
 
-  it('should successfully validate data', () => {
-    assert.equal(instance.validate({ name: 'Sébastien' }), true)
+  it('should successfully validate data', (done) => {
+    const data = { name: 'Sébastien' }
+
+    should.validate.with.data(data, jsv, schema, done)
   })
 
-  it('should successfully validate a missing property', () => {
-    const report = instance.validate({ email: 'u@example.com' })
+  it('should successfully validate a missing property', (done) => {
+    const data = { email: 'u@example.com' }
 
-    assert.equal(Array.isArray(report), true)
+    should.throw.with.data(data, jsv, schema, 'required', done)
   })
 })
 
 describe('generic.object.keywords.maxProperties', () => {
   const jsv = new JsonSchemav()
   const schema = { type: 'object', maxProperties: 3 }
-  const instance = jsv.compile(schema)
 
-  it('should successfully validate with maximum properties', () => {
-    const report = instance.validate({ a: 1, b: 2, c: 3 })
+  it('should successfully validate with maximum properties', (done) => {
+    const data = { a: 1, b: 2, c: 3 }
 
-    assert.equal(report, true)
+    return should.validate.with.data(data, jsv, schema, done)
   })
 
-  it('should successfully validate with exceeding size', () => {
-    const report = instance.validate({ a: 1, b: 2, c: 3, d: 4 })
+  it('should successfully validate with exceeding size', (done) => {
+    const data = { a: 1, b: 2, c: 3, d: 4 }
 
-    assert.equal(Array.isArray(report), true, 'report should have errors')
-    assert.equal(report.length, 1, 'report should only have one error')
-    assert.ok(report[0].message.startsWith('too many properties'))
+    should.throw.with.data(data, jsv, schema, 'maxProperties', done)
   })
 })
 
 describe('generic.object.keywords.minProperties', () => {
   const jsv = new JsonSchemav()
   const schema = { type: 'object', minProperties: 2 }
-  const instance = jsv.compile(schema)
 
-  it('should successfully validate with minimal size', () => {
-    const report = instance.validate({ a: 1, b: 2 })
+  it('should successfully validate with minimal size', (done) => {
+    const data = { a: 1, b: 2 }
 
-    assert.equal(report, true)
+    should.validate.with.data(data, jsv, schema, done)
   })
 
-  it('should successfully validate with not enough properties', () => {
-    const report = instance.validate({ a: 1 })
+  it('should successfully validate with not enough properties', (done) => {
+    const data = { a: 1 }
 
-    assert.equal(Array.isArray(report), true, 'report should have errors')
-    assert.equal(report.length, 1, 'report should only have one error')
-    assert.ok(report[0].message.startsWith('not enough properties'))
+    should.throw.with.data(data, jsv, schema, 'minProperties', done)
   })
 })
 
@@ -461,62 +442,70 @@ describe('generic.object.keywords.dependencies', () => {
       credit_card: [ 'billing_address' ]
     }
   }
-  const instance = jsv.compile(schema)
+  const expected = (value, next) => (err, done) => {
+    try {
+      if (next) {
+        return assert.deepStrictEqual(err.errors[0].errors[0], value)
+      }
 
-  it('should successfully validate with a valid data', () => {
+      assert.deepStrictEqual(err.errors[0].missing, value)
+    } catch (e) {
+      done(e)
+    }
+  }
+
+  it('should successfully validate with a valid data', (done) => {
     const data = {
       name: 'John Doe',
       credit_card: 5555555555555555,
       billing_address: '555 Debtor\'s Lane'
     }
 
-    assert.equal(instance.validate(data), true)
+    should.validate.with.data(data, jsv, schema, done)
   })
 
-  it('should successfully validate with a missing dependency', () => {
+  it('should successfully validate with a missing dependency', (done) => {
     const data = {
       name: 'John Doe',
       credit_card: 5555555555555555
     }
-    const report = instance.validate(data)
 
-    assert.equal(report.length, 1, 'should have only one error item')
-    assert.equal(report[0].keyword, 'dependencies', 'should have `dependencies` keyword error')
-    assert.equal(report[0].missing[0].prop, 'credit_card', 'report should have prop `credit_card`')
-    assert.equal(report[0].missing[0].required, 'billing_address', 'report should have prop `billing_address`')
+    should.throw.with.data(data, jsv, schema, 'dependencies', done)
   })
 
-  it('should successfully validate with a no prop and his dependency', () => {
+  it('should successfully validate with a no prop and his dependency', (done) => {
     const data = {
       name: 'John Doe'
     }
 
-    assert.equal(instance.validate(data), true)
+    should.validate.with.data(data, jsv, schema, done)
   })
 
-  it('should successfully validate with dependency wihout it parent', () => {
+  it('should successfully validate with dependency wihout it parent', (done) => {
     const data = {
       name: 'John Doe',
       billing_address: '555 Debtor\'s Lane'
     }
 
-    assert.equal(instance.validate(data), true)
+    should.validate.with.data(data, jsv, schema, done)
   })
 
-  it('should successfully validate with bidirectional dependencies', () => {
+  it('should successfully validate with bidirectional dependencies', (done) => {
     schema.dependencies.billing_address = [ 'credit_card' ]
 
-    const instance = jsv.compile(schema)
     const data1 = { name: 'John Doe', credit_card: 5555555555555555 }
     const data2 = { name: 'John Doe', billing_address: '555 Debtor\'s Lane' }
     const expected1 = [ { prop: 'credit_card', required: 'billing_address' } ]
     const expected2 = [ { prop: 'billing_address', required: 'credit_card' } ]
 
-    assert.deepEqual(instance.validate(data1)[0].missing, expected1, true)
-    assert.deepEqual(instance.validate(data2)[0].missing, expected2, true)
+    should.throw.with.data(data1, jsv, schema, 'dependencies', expected(expected1), done, false)
+
+    should.throw.with.data(data2, jsv, schema, 'dependencies', expected(expected2), done, false)
+
+    done()
   })
 
-  it('should successfully validate with schema dependencies', () => {
+  it('should successfully validate with schema dependencies', (done) => {
     const schema = {
       type: 'object',
       properties: {
@@ -534,29 +523,33 @@ describe('generic.object.keywords.dependencies', () => {
       }
     }
 
-    const instance = jsv.compile(schema)
     const data1 = {
       name: 'John Doe',
       credit_card: 5555555555555555,
       billing_address: '555 Debtor\'s Lane'
     }
+
+    should.validate.with.data(data1, jsv, schema, done, false)
+
     const data2 = {
       name: 'John Doe',
       credit_card: 5555555555555555
     }
+    const expectedReport = {
+      keyword: 'required',
+      required: [ 'billing_address' ],
+      message: 'missing required fields' }
+
+    should.throw.with.data(data2, jsv, schema, 'dependencies', expected(expectedReport, true), done, false)
+
     const data3 = {
       name: 'John Doe',
       billing_address: '555 Debtor\'s Lane'
     }
 
-    const expected = {
-      keyword: 'required',
-      required: [ 'billing_address' ],
-      message: 'missing required fields' }
+    should.validate.with.data(data3, jsv, schema, done, false)
 
-    assert.equal(instance.validate(data1), true)
-    assert.deepEqual(instance.validate(data2)[0].missing[0], expected)
-    assert.equal(instance.validate(data3), true)
+    done()
   })
 })
 
@@ -570,78 +563,83 @@ describe('generic.object.keywords.patternProperties', () => {
     },
     additionalProperties: false
   }
-  const instance = jsv.compile(schema)
 
-  it('should successfully validate with a valid data', () => {
-    assert.equal(instance.validate({ S_25: 'This is a string' }), true)
-    assert.equal(instance.validate({ I_0: 42 }), true)
+  it('should successfully validate with a valid data', (done) => {
+    schema.default = { S_25: 'This is a string' }
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    schema.default = { I_0: 42 }
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    done()
   })
 
-  it('should successfully validate with an invalid data', () => {
-    const data1 = { S_0: 42 }
-    const data2 = { I_42: 'This is a string' }
-    const data3 = { keyword: 'value' }
+  it('should successfully validate with an invalid data', (done) => {
+    schema.default = { S_0: 42 }
+    should.throw.with.defaultValue(jsv, schema, 'patternProperties', done, false)
 
-    const result1 = instance.validate(data1)
-    const result2 = instance.validate(data2)
-    const result3 = instance.validate(data3)
+    schema.default = { I_42: 'This is a string' }
+    should.throw.with.defaultValue(jsv, schema, 'patternProperties', done, false)
 
-    assert.equal(Array.isArray(result1), true, 'data prop starting with a matching property pattern should be have a valid value')
-    assert.equal(result1[0].keyword, 'patternProperties')
-    assert.equal(result1[0].errors[0].keyword, 'type')
+    schema.default = { keyword: 'value' }
+    should.throw.with.defaultValue(jsv, schema, 'additionalProperties', done, false)
 
-    assert.equal(Array.isArray(result2), true)
-    assert.equal(result2[0].keyword, 'patternProperties')
-    assert.equal(result2[0].errors[0].keyword, 'type')
-
-    assert.equal(Array.isArray(result3), true)
-    assert.equal(result3[0].keyword, 'additionalProperties')
-    assert.equal(result3[0].properties[0], 'keyword')
+    done()
   })
 
-  it('should successfully validate with properties entries', () => {
+  it('should successfully validate with properties entries', (done) => {
     schema.properties = {}
 
-    const instance = jsv.compile(schema)
+    schema.default = { S_25: 'This is a string' }
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    assert.equal(instance.validate({ S_25: 'This is a string' }), true)
-    assert.equal(instance.validate({ I_0: 42 }), true)
+    schema.default = { I_0: 42 }
+    should.validate.with.defaultValue(jsv, schema, done, false)
+
+    done()
   })
 
-  it('should successfully validate with no properties', () => {
+  it('should successfully validate with no properties', (done) => {
     schema.properties = {}
     schema.patternProperties = {}
 
-    const instance = jsv.compile(schema)
+    schema.default = {}
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    assert.equal(instance.validate({}), true)
-    assert.equal(Array.isArray(instance.validate({ I_0: 42 })), true)
+    schema.default = { I_0: 42 }
+    should.throw.with.defaultValue(jsv, schema, 'additionalProperties', done, false)
+
+    done()
   })
 })
 
 describe('generic.object.keywords.additionalProperties', () => {
   const jsv = new JsonSchemav()
-  const schema = {
-    type: 'object',
-    additionalProperties: true
-  }
-  const instance = jsv.compile(schema)
+  const schema = { type: 'object' }
 
-  it('should successfully validate data', () => {
-    assert.equal(instance.validate({}), true)
-    assert.equal(instance.validate({ S_25: 'This is a string' }), true)
-    assert.equal(instance.validate({ I_0: 42 }), true)
+  it('should successfully validate data', (done) => {
+    const data1 = {}
+    const data2 = { S_25: 'This is a string' }
+    const data3 = { I_0: 42 }
+
+    schema.additionalProperties = true
+
+    should.validate.with.data(data1, jsv, schema, done, false)
+    should.validate.with.data(data2, jsv, schema, done, false)
+    should.validate.with.data(data3, jsv, schema, done, false)
+
+    done()
   })
 
-  it('should successfully validate data with additionalProperties = false', () => {
+  it('should successfully validate data with additionalProperties = false', (done) => {
     schema.additionalProperties = false
 
-    const instance = jsv.compile(schema)
+    const data = {}
 
-    assert.equal(instance.validate({}), true)
+    should.validate.with.data(data, jsv, schema, done)
   })
 
-  it('should successfully validate data with additionalProperties = object', () => {
+  it('should successfully validate data with additionalProperties = object', (done) => {
     schema.additionalProperties = {
       type: 'object',
       properties: {
@@ -649,23 +647,18 @@ describe('generic.object.keywords.additionalProperties', () => {
       }
     }
 
-    let instance = jsv.compile(schema)
-
-    assert.equal(instance.validate({ name: 'Sébastien' }), true)
+    schema.default = { name: 'Sébastien' }
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
     schema.properties = {
       address: { type: 'string' }
     }
+    should.validate.with.defaultValue(jsv, schema, done, false)
 
-    instance = jsv.compile(schema)
-
-    assert.equal(instance.validate({ name: 'Sébastien' }), true)
-
+    schema.default = { address: 'Paris, France', name: undefined }
     schema.additionalProperties.required = [ 'name' ]
+    should.throw.with.defaultValue(jsv, schema, 'additionalProperties', done, false)
 
-    const report = jsv.compile(schema).validate({ address: 'Douala' })
-
-    assert.equal(report[0].keyword, 'additionalProperties',
-      'should validate with missing additionalProperties required field')
+    done()
   })
 })

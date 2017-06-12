@@ -1,6 +1,7 @@
 'use strict'
 
 const assert = require('assert')
+const should = require('..').should
 const JsonSchemav = require('../../lib/api')
 
 /* global describe it */
@@ -47,20 +48,22 @@ describe('jsv.validateSchema', () => {
 describe('jsv.addCompileStep', () => {
   const jsv = new JsonSchemav()
 
-  it('should successfully add new compile step', () => {
+  it('should successfully add new compile step', (done) => {
     jsv.addCompileStep('string', function () {
       this.schema.$compiled = true
     })
 
     jsv.addCompileStep('string', function () {})
 
-    const instance = jsv.compile({ type: 'string' })
+    jsv.compile({ type: 'string' }).then((instance) => {
+      assert.equal(instance.compileSteps.length, 2,
+        'instance should have one compile step function')
 
-    assert.equal(instance.compileSteps.length, 2,
-      'instance should have one compile step function')
+      assert.ok(instance.schema.hasOwnProperty('$compiled'),
+        'instance\'s schema should have a $compiled entry')
 
-    assert.ok(instance.schema.hasOwnProperty('$compiled'),
-      'instance\'s schema should have a $compiled entry')
+      done()
+    }).catch(done)
   })
 
   it('should successfully execute with a valid type name', () => {
@@ -133,7 +136,7 @@ describe('jsv.addKeyword', () => {
     return data.value.split(/\s/).length === 1
   })
 
-  it('should successfully add new keyword', () => {
+  it('should successfully add new keyword', (done) => {
     const validate = (value, data) => value === data
 
     assert.doesNotThrow(() => {
@@ -141,10 +144,11 @@ describe('jsv.addKeyword', () => {
       jsv.addKeyword('twitter', 'account', validate)
     })
 
-    const instance = jsv.compile({ type: 'twitter' })
-
-    assert.ok(instance.keywords.hasOwnProperty('account'),
-      'instance\'s keywords should have a account entry')
+    jsv.compile({ type: 'twitter' }).then((instance) => {
+      assert.ok(instance.keywords.hasOwnProperty('account'),
+        'instance\'s keywords should have a account entry')
+      done()
+    }).catch(done)
   })
 
   it('should successfully execute with a valid type name', () => {
@@ -168,15 +172,14 @@ describe('jsv.addKeyword', () => {
     assert.doesNotThrow(() => jsv.validateSchema(schema))
   })
 
-  it('should successfully execute with an invalid default data', () => {
+  it('should successfully execute with an invalid default data', (done) => {
     const schema = {
       type: 'twitter',
       account: 'sebastien',
       default: 'invalid value'
     }
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value "invalid value"/)
+    should.throw.with.defaultValue(jsv, schema, 'type', done)
   })
 })
 

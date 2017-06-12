@@ -1,6 +1,7 @@
 'use strict'
 
 const assert = require('assert')
+const should = require('../..').should
 const JsonSchemav = require('../../../lib/api')
 
 /* global describe it */
@@ -29,44 +30,36 @@ describe('generic.boolean.validateSchema', () => {
     })
   })
 
-  it('should successfully validate schema with non boolean default value', () => {
+  it('should successfully validate schema with non boolean default value', (done) => {
     const schema = {
       type: 'boolean',
       default: 1
     }
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value/)
+    should.throw.with.defaultValue(jsv, schema, 'type', done)
   })
 })
 
 describe('generic.boolean.validate', () => {
   const jsv = new JsonSchemav()
   const schema = { type: 'boolean', default: true }
-  const instance = jsv.compile(schema)
 
-  it('should successfully validate a boolean', () => {
-    const report1 = instance.validate(true)
-    const report2 = instance.validate(false)
+  it('should successfully validate a boolean', (done) => {
+    [ true, false ].forEach((data) => {
+      schema.default = data
+      should.validate.with.defaultValue(jsv, schema, done, false)
+    })
 
-    assert.equal(report1, true, 'should have no error with `true`')
-    assert.equal(report2, true, 'should have no error with `false`')
+    done()
   })
 
-  it('should successfully validate a non boolean', () => {
-    const report1 = instance.validate(123)
-    const report2 = instance.validate(null)
-    const report3 = instance.validate([])
-    const report4 = instance.validate(() => {})
-    const report5 = instance.validate('abc')
-    const report6 = instance.validate({})
+  it('should successfully validate a non boolean', (done) => {
+    [ 123, null, [], () => {}, 'abc', {}, undefined ].forEach((data) => {
+      schema.default = data
+      should.throw.with.defaultValue(jsv, schema, 'type', done, false)
+    })
 
-    assert.equal(report1[0].keyword, 'type', 'should have no error with `123`')
-    assert.equal(report2[0].keyword, 'type', 'should have no error with `null`')
-    assert.equal(report3[0].keyword, 'type', 'should have no error with `[]`')
-    assert.equal(report4[0].keyword, 'type', 'should have no error with `() => {}`')
-    assert.equal(report5[0].keyword, 'type', 'should have no error with `abc`')
-    assert.equal(report6[0].keyword, 'type', 'should have no error with `{}`')
+    done()
   })
 })
 
@@ -111,19 +104,16 @@ describe('generic.boolean.keywords.enum', () => {
       default: false
     }
 
-    assert.doesNotThrow(() => {
-      jsv.compile(schema)
-    })
+    return jsv.compile(schema)
   })
 
-  it('should successfully validate schema with unknow default value in enum', () => {
+  it('should successfully validate schema with unknow default value in enum', (done) => {
     const schema = {
       type: 'boolean',
       enum: [ true ],
       default: false
     }
 
-    assert.throws(() =>
-      jsv.compile(schema), /Invalid default value false/)
+    should.throw.with.defaultValue(jsv, schema, 'enum', done)
   })
 })
