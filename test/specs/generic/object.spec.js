@@ -553,6 +553,32 @@ describe('generic.object.keywords.dependencies', () => {
   })
 })
 
+describe('generic.object.keywords.properties', () => {
+  const jsv = new JsonSchemav()
+  const schema = {
+    type: 'object',
+    properties: {
+      name: { type: 'string' },
+      date: { type: 'string', format: 'date', default: 'now()' }
+    }
+  }
+
+  it('should successfully set the default value', () => {
+    const data = { name: 'Hello, World!' }
+
+    return jsv.compile(schema)
+      .then((instance) => instance.validate(data))
+      .then((parsedData) => {
+        if (!parsedData.hasOwnProperty('name')) {
+          throw new Error('parsedData should have a property: "name"')
+        }
+        if (!parsedData.hasOwnProperty('date')) {
+          throw new Error('parsedData should have a property: "date"')
+        }
+      })
+  })
+})
+
 describe('generic.object.keywords.patternProperties', () => {
   const jsv = new JsonSchemav()
   const schema = {
