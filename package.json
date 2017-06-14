@@ -1,6 +1,6 @@
 {
   "name": "jsonschemav",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple JSON Schema Validation",
   "main": "lib/api.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "pretest": "standard",
     "test": "mocha --harmony --trace-warnings test/specs test/specs/**/*.spec.js",
     "posttest": "npm run doc",
-    "doc": "documentation readme lib/api.js --shallow --section='Instance API'",
+    "doc": "documentation readme lib/api.js --shallow --section='JSV API'",
     "lint": "standard",
     "lintd": "nodemon -x 'npm run lint'",
     "testd": "nodemon -x 'mocha --harmony --trace-warnings test/specs test/specs/**/*.spec.js'",
