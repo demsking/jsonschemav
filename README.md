@@ -60,35 +60,47 @@ const axios = require('axios')
 const JsonSchemav = require('jsonschemav')
 
 const jsv = new JsonSchemav()
-const schema = { type: 'twitter' }
+const schema = { type: 'string', isTwitterAccount: true }
 const endpoint = 'https://twitter.com/users/username_available'
+const validationFn = (value, data) => {
+  // value is the keyword value
+  // data.value is the user data
 
-const validationFn = (data) => axios.get(`${endpoint}?username=${data.value}`)
-  .then((response) => {
-    if (response.data.valid) {
-      const message = `The username '${data.value}' does not exists`
+  if (value === true) {
+    return axios.get(`${endpoint}?username=${data.value}`)
+      .then((response) => {
+        if (response.data.valid) {
+          const message = `The username '${data.value}' does not exists`
+          const err = new Error()
 
-      return Promise.reject({ keyword: 'notfound', message })
-    }
+          err.props = { message }
 
-    return Promise.resolve(data.value)
-  })
+          throw err
+        }
 
-jsv.addType('twitter', validationFn)
+        return Promise.resolve(data.value)
+      })
+  }
+
+  return true
+}
+
+jsv.addKeyword('string', 'isTwitterAccount', validationFn)
 
 const validator = jsv.compile(schema)
 
 validator
   .then((instance) => instance.validate('nonexistingac'))
   .catch((err) => {
-    console.error(err)
-    // [ { keyword: 'notfound',
-    //     message: 'The username \'nonexistingac\' does not exists' } ]
+    console.error(err.errors)
+    // [ { message: 'The username \'nonexistingac\' does not exists',
+    //     keyword: 'isTwitterAccount' } ]
+
   })
 
 validator
   .then((instance) => instance.validate('demsking'))
-  .then(() => {
+  .then((parsedData) => {
     console.log('success')
   })
 ```
