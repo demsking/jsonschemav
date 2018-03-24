@@ -5,7 +5,7 @@
   "main": "lib/api.js",
   "scripts": {
     "prepublish": "npm test",
-    "pretest": "standard",
+    "pretest": "standard lib",
     "test": "jest",
     "posttest": "npm run doc",
     "doc": "documentation readme lib/api.js --shallow --section='JSV API'",
