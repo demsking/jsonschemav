@@ -1,10 +1,13 @@
 module.exports = {
   expand: true,
   notify: true,
-  testMatch: ['<rootDir>/test/specs/*.spec.js'],
+  testMatch: [
+    '<rootDir>/test/specs/*.spec.js',
+    '<rootDir>/test/specs/**/*.spec.js'
+  ],
   collectCoverage: true,
   collectCoverageFrom: [
-    '**/*.{js,vue}',
+    '**/*.js',
     '!.eslintrc.js',
     '!*.js',
     '!test/**',
@@ -16,11 +19,5 @@ module.exports = {
   moduleFileExtensions: [
     'js',
     'json'
-  ],
-  transform: {
-    '^.+\\.js$': 'babel-jest'
-  },
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
-  }
+  ]
 }

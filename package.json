@@ -29,7 +29,6 @@
   },
   "homepage": "https://github.com/demsking/jsonschemav#readme",
   "devDependencies": {
-    "babel-jest": "^22.4.3",
     "coveralls": "^3.0.0",
     "documentation": "^6.1.0",
     "jest": "^22.4.3",
