@@ -1,6 +1,6 @@
 {
   "name": "jsonschemav",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A simple JSON Schema Validation",
   "main": "lib/api.js",
   "scripts": {
@@ -29,9 +29,9 @@
   },
   "homepage": "https://github.com/demsking/jsonschemav#readme",
   "devDependencies": {
-    "coveralls": "^3.0.0",
-    "documentation": "^6.1.0",
-    "jest": "^22.4.3",
+    "coveralls": "^3.0.1",
+    "documentation": "^7.1.0",
+    "jest": "^23.1.0",
     "standard": "^11.0.1"
   },
   "dependencies": {
