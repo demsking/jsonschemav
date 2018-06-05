@@ -30,7 +30,7 @@
   "homepage": "https://github.com/demsking/jsonschemav#readme",
   "devDependencies": {
     "coveralls": "^3.0.1",
-    "documentation": "^7.1.0",
+    "documentation": "^8.0.0",
     "jest": "^23.1.0",
     "standard": "^11.0.1"
   },
