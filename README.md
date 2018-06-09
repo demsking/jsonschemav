@@ -1,8 +1,8 @@
-# JSON Schema Validation
+# JSON Schema Validator
 
-A simple JSON Schema Validation
+A simple JSON Schema Validator
 
-[![Build Status](https://travis-ci.org/demsking/jsonschemav.svg?branch=master)](https://travis-ci.org/demsking/jsonschemav) [![Known Vulnerabilities](https://snyk.io/test/github/demsking/jsonschemav/badge.svg)](https://snyk.io/test/github/demsking/jsonschemav) [![Coverage Status](https://coveralls.io/repos/github/demsking/jsonschemav/badge.svg?branch=master)](https://coveralls.io/github/demsking/jsonschemav?branch=master)
+[![npm](https://img.shields.io/npm/v/jsonschemav.svg)](https://www.npmjs.com/package/jsonschemav) [![Build Status](https://travis-ci.org/demsking/jsonschemav.svg?branch=master)](https://travis-ci.org/demsking/jsonschemav) [![Known Vulnerabilities](https://snyk.io/test/github/demsking/jsonschemav/badge.svg)](https://snyk.io/test/github/demsking/jsonschemav) [![Coverage Status](https://coveralls.io/repos/github/demsking/jsonschemav/badge.svg?branch=master)](https://coveralls.io/github/demsking/jsonschemav?branch=master)
 
 ## Install
 
@@ -336,4 +336,4 @@ jsv.compile(schema)
 
 ## License
 
-Under the MIT license. See [LICENSE](https://github.com/demsking/jsonschemav/blob/master/LICENSE) file for more details.
+Under the MIT license. See [LICENSE](https://gitlab.com/demsking/jsonschemav/blob/master/LICENSE) file for more details.
