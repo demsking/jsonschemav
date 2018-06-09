@@ -14,7 +14,7 @@ cache:
 test:
   script:
     - npm test
-  coverage: '/All files:\s+|\s+(\d+\.*\d*)/'
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
 
 publish:
   only:
