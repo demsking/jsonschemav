@@ -17,7 +17,6 @@ test:
   coverage: '/All files:\s+|\s+([\d\.]+)/'
 
 publish:
-  stage: deploy
   only:
     - tags
     - triggers
