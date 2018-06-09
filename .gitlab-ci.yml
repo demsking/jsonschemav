@@ -1,0 +1,29 @@
+image: node:latest
+
+stages:
+  - test
+  - publish
+
+before_script:
+  - npm install
+
+cache:
+  paths:
+    - node_modules/
+
+test:
+  script:
+    - npm test
+  coverage: '/All files:\s+|\s+([\d\.]+)/'
+
+publish:
+  stage: deploy
+  only:
+    - tags
+    - triggers
+  script:
+    - echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+    - npm publish
+  environment:
+    name: npm
+    url: https://www.npmjs.com/package/jsonschemav
