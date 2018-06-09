@@ -2,7 +2,7 @@
 
 A simple JSON Schema Validator
 
-[![npm](https://img.shields.io/npm/v/jsonschemav.svg)](https://www.npmjs.com/package/jsonschemav) [![Build Status](https://travis-ci.org/demsking/jsonschemav.svg?branch=master)](https://travis-ci.org/demsking/jsonschemav) [![Known Vulnerabilities](https://snyk.io/test/github/demsking/jsonschemav/badge.svg)](https://snyk.io/test/github/demsking/jsonschemav) [![Coverage Status](https://coveralls.io/repos/github/demsking/jsonschemav/badge.svg?branch=master)](https://coveralls.io/github/demsking/jsonschemav?branch=master)
+[![npm](https://img.shields.io/npm/v/jsonschemav.svg)](https://www.npmjs.com/package/jsonschemav) [![Build status](https://gitlab.com/demsking/jsonschemav/badges/master/build.svg)](https://gitlab.com/demsking/jsonschemav/commits/master) [![Test coverage](https://gitlab.com/demsking/jsonschemav/badges/master/coverage.svg)](https://gitlab.com/demsking/jsonschemav/pipelines)
 
 ## Install
 
