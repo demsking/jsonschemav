@@ -9,7 +9,7 @@
     "test": "jest",
     "posttest": "npm run doc",
     "doc": "documentation readme lib/api.js --shallow --section='JSV API'",
-    "lint": "standard",
+    "lint": "standard lib",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
