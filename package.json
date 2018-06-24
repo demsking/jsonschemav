@@ -4,10 +4,7 @@
   "description": "A simple JSON Schema Validation",
   "main": "lib/api.js",
   "scripts": {
-    "prepublish": "npm test",
-    "pretest": "standard lib",
     "test": "jest",
-    "posttest": "npm run doc",
     "doc": "documentation readme lib/api.js --shallow --section='JSV API'",
     "lint": "standard lib",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls"
