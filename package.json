@@ -1,16 +1,12 @@
 {
   "name": "jsonschemav",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A simple JSON Schema Validation",
   "main": "lib/api.js",
   "scripts": {
-    "prepublish": "npm test",
-    "pretest": "standard lib",
     "test": "jest",
-    "posttest": "npm run doc",
     "doc": "documentation readme lib/api.js --shallow --section='JSV API'",
-    "lint": "standard",
-    "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls"
+    "lint": "standard lib"
   },
   "repository": {
     "type": "git",
@@ -29,10 +25,9 @@
   },
   "homepage": "https://gitlab.com/demsking/jsonschemav",
   "devDependencies": {
-    "coveralls": "^3.0.1",
-    "documentation": "^7.1.0",
-    "jest": "^23.1.0",
-    "standard": "^11.0.1"
+    "documentation": "^13.0.2",
+    "jest": "^26.2.2",
+    "standard": "^14.3.4"
   },
   "dependencies": {
     "clone": "^2.1.1"

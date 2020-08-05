@@ -1,8 +1,14 @@
 # JSON Schema Validator
 
-A simple JSON Schema Validator
+A basic JSON Schema Validator
 
-[![npm](https://img.shields.io/npm/v/jsonschemav.svg)](https://www.npmjs.com/package/jsonschemav) [![Build status](https://gitlab.com/demsking/jsonschemav/badges/master/build.svg)](https://gitlab.com/demsking/jsonschemav/commits/master) [![Test coverage](https://gitlab.com/demsking/jsonschemav/badges/master/coverage.svg)](https://gitlab.com/demsking/jsonschemav/pipelines)
+[![npm](https://img.shields.io/npm/v/jsonschemav.svg)](https://www.npmjs.com/package/jsonschemav)
+[![Build status](https://gitlab.com/demsking/jsonschemav/badges/master/pipeline.svg)](https://gitlab.com/demsking/jsonschemav/pipelines)
+[![Test coverage](https://gitlab.com/demsking/jsonschemav/badges/master/coverage.svg)](https://gitlab.com/demsking/jsonschemav/pipelines)
+
+> **DISCLAIMER**: This is a basic JSON Schema validator implementation,
+  it dont implement the full JSON Schema spec, so **it's should never used in production**.
+  For a faster and powerful JSON Schema validator, please use [AJV](https://www.npmjs.com/package/ajv)
 
 ## Install
 
@@ -111,24 +117,24 @@ validator
 
 #### Table of Contents
 
--   [validateSchema](#validateschema)
--   [compile](#compile)
--   [addCompileStep](#addcompilestep)
--   [addAlias](#addalias)
--   [addType](#addtype)
--   [removeType](#removetype)
--   [addKeyword](#addkeyword)
--   [removeKeyword](#removekeyword)
+- [validateSchema()](#validateschema)
+- [compile()](#compile)
+- [addCompileStep()](#addcompilestep)
+- [addAlias()](#addalias)
+- [addType()](#addtype)
+- [removeType()](#removetype)
+- [addKeyword()](#addkeyword)
+- [removeKeyword()](#removekeyword)
 
-### validateSchema
+### validateSchema()
 
 Validate a schema. Throws an error for invalid schema
 
-**Parameters**
+#### Parameters
 
 -   `schema` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** Schema to validate
 
-**Examples**
+#### Examples
 
 ```javascript
 const jsv = new JsonSchemav()
@@ -141,15 +147,15 @@ try {
 }
 ```
 
-### compile
+### compile()
 
 Compile a schema
 
-**Parameters**
+#### Parameters
 
 -   `schema` **[object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** Schema to compile
 
-**Examples**
+#### Examples
 
 ```javascript
 const jsv = new JsonSchemav()
@@ -177,25 +183,25 @@ jsv.compile(schema)
 
 Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)** Returns the validation interface on success and an error otherwise
 
-### addCompileStep
+### addCompileStep()
 
 Add a compile step function to a type
 
-**Parameters**
+#### Parameters
 
 -   `type` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of the type
 -   `compileStepFn` **[function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function)** A compile function
 
-### addAlias
+### addAlias()
 
 Add an alias for a type
 
-**Parameters**
+#### Parameters
 
 -   `type` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of a defined type
 -   `name` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The alias name
 
-**Examples**
+#### Examples
 
 ```javascript
 const jsv = new JsonSchemav()
@@ -214,16 +220,16 @@ jsv.compile(schema)
   })
 ```
 
-### addType
+### addType()
 
 Add a new type to the instance
 
-**Parameters**
+#### Parameters
 
 -   `name` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of the new type
 -   `validateFn` **[function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function)?** A validate function for the new type
 
-**Examples**
+#### Examples
 
 ```javascript
 const jsv = new JsonSchemav()
@@ -245,15 +251,15 @@ jsv.compile(schema)
   })
 ```
 
-### removeType
+### removeType()
 
 Remove a type from the instance
 
-**Parameters**
+#### Parameters
 
 -   `name` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The nema of the type
 
-**Examples**
+#### Examples
 
 ```javascript
 const schema = { type: 'string' }
@@ -268,17 +274,17 @@ try {
 }
 ```
 
-### addKeyword
+### addKeyword()
 
 Add a new keyword to a type
 
-**Parameters**
+#### Parameters
 
 -   `type` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of the type
 -   `name` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of the new keyword
 -   `validateFn` **[function](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Statements/function)** A validate function for the new keyword
 
-**Examples**
+#### Examples
 
 ```javascript
 const jsv = new JsonSchemav()
@@ -307,16 +313,16 @@ const schema = {
 }
 ```
 
-### removeKeyword
+### removeKeyword()
 
 Remove a keyword from a type
 
-**Parameters**
+#### Parameters
 
 -   `type` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of the type
 -   `name` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** The name of the keyword
 
-**Examples**
+#### Examples
 
 ```javascript
 const jsv = new JsonSchemav()
